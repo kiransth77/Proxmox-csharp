@@ -1,0 +1,69 @@
+version: 2
+updates:
+  # Enable version updates for .NET dependencies
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    reviewers:
+      - "@team-reviewers"
+    assignees:
+      - "@project-maintainer"
+    open-pull-requests-limit: 10
+    target-branch: "develop"
+
+  # Enable version updates for npm dependencies (when we add web projects)
+  - package-ecosystem: "npm"
+    directory: "/src/ProxmoxWeb"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    reviewers:
+      - "@team-reviewers"
+    assignees:
+      - "@project-maintainer"
+    open-pull-requests-limit: 5
+    target-branch: "develop"
+
+  # GitHub Actions workflow updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    reviewers:
+      - "@team-reviewers"
+    assignees:
+      - "@project-maintainer"
+    open-pull-requests-limit: 3
+    target-branch: "develop"
+
+  # Docker dependencies (when we add Dockerfiles)
+  - package-ecosystem: "docker"
+    directory: "/src/ProxmoxWeb"
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "09:00"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    reviewers:
+      - "@team-reviewers"
+    assignees:
+      - "@project-maintainer"
+    open-pull-requests-limit: 3
+    target-branch: "develop"

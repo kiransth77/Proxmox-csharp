@@ -1,0 +1,260 @@
+name: Build and Deploy Web Applications
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/ProxmoxWeb/**'
+      - 'src/ProxmoxBlazor/**'
+      - 'src/ProxmoxMaui/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/ProxmoxWeb/**'
+      - 'src/ProxmoxBlazor/**'
+      - 'src/ProxmoxMaui/**'
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '20.x'
+
+jobs:
+  detect-changes:
+    name: Detect Project Changes
+    runs-on: ubuntu-latest
+    outputs:
+      web-changed: ${{ steps.changes.outputs.web }}
+      blazor-changed: ${{ steps.changes.outputs.blazor }}
+      maui-changed: ${{ steps.changes.outputs.maui }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Detect changes
+      uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+          web:
+            - 'src/ProxmoxWeb/**'
+          blazor:
+            - 'src/ProxmoxBlazor/**'
+          maui:
+            - 'src/ProxmoxMaui/**'
+
+  build-aspnet-web:
+    name: Build ASP.NET Core Web App
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.web-changed == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: src/ProxmoxWeb/package-lock.json
+    
+    - name: Install npm dependencies
+      run: |
+        if [ -f "src/ProxmoxWeb/package.json" ]; then
+          cd src/ProxmoxWeb
+          npm ci
+        fi
+    
+    - name: Build frontend assets
+      run: |
+        if [ -f "src/ProxmoxWeb/package.json" ]; then
+          cd src/ProxmoxWeb
+          npm run build
+        fi
+    
+    - name: Restore .NET dependencies
+      run: dotnet restore src/ProxmoxWeb/ProxmoxWeb.csproj
+    
+    - name: Build web application
+      run: dotnet build src/ProxmoxWeb/ProxmoxWeb.csproj --configuration Release --no-restore
+    
+    - name: Publish web application
+      run: dotnet publish src/ProxmoxWeb/ProxmoxWeb.csproj --configuration Release --output ./publish/web --no-build
+    
+    - name: Upload web artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: proxmox-web-app
+        path: ./publish/web/
+
+  build-blazor-app:
+    name: Build Blazor Application
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.blazor-changed == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore src/ProxmoxBlazor/ProxmoxBlazor.csproj
+    
+    - name: Build Blazor app
+      run: dotnet build src/ProxmoxBlazor/ProxmoxBlazor.csproj --configuration Release --no-restore
+    
+    - name: Publish Blazor app
+      run: dotnet publish src/ProxmoxBlazor/ProxmoxBlazor.csproj --configuration Release --output ./publish/blazor --no-build
+    
+    - name: Upload Blazor artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: proxmox-blazor-app
+        path: ./publish/blazor/
+
+  build-maui-app:
+    name: Build MAUI Application
+    runs-on: windows-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.maui-changed == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Install MAUI workloads
+      run: dotnet workload install maui
+    
+    - name: Restore dependencies
+      run: dotnet restore src/ProxmoxMaui/ProxmoxMaui.csproj
+    
+    - name: Build MAUI app
+      run: dotnet build src/ProxmoxMaui/ProxmoxMaui.csproj --configuration Release --no-restore
+    
+    - name: Upload MAUI artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: proxmox-maui-app
+        path: src/ProxmoxMaui/bin/Release/
+
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [build-aspnet-web, build-blazor-app]
+    if: always() && (needs.build-aspnet-web.result == 'success' || needs.build-blazor-app.result == 'success')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Download web artifacts
+      uses: actions/download-artifact@v3
+      if: needs.build-aspnet-web.result == 'success'
+      with:
+        name: proxmox-web-app
+        path: ./artifacts/web/
+    
+    - name: Download Blazor artifacts
+      uses: actions/download-artifact@v3
+      if: needs.build-blazor-app.result == 'success'
+      with:
+        name: proxmox-blazor-app
+        path: ./artifacts/blazor/
+    
+    - name: Build and push web Docker image
+      if: needs.build-aspnet-web.result == 'success'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: src/ProxmoxWeb/Dockerfile
+        push: ${{ github.ref == 'refs/heads/main' }}
+        tags: |
+          ghcr.io/${{ github.repository }}/proxmox-web:latest
+          ghcr.io/${{ github.repository }}/proxmox-web:${{ github.sha }}
+    
+    - name: Build and push Blazor Docker image
+      if: needs.build-blazor-app.result == 'success'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: src/ProxmoxBlazor/Dockerfile
+        push: ${{ github.ref == 'refs/heads/main' }}
+        tags: |
+          ghcr.io/${{ github.repository }}/proxmox-blazor:latest
+          ghcr.io/${{ github.repository }}/proxmox-blazor:${{ github.sha }}
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main' && needs.docker-build.result == 'success'
+    environment: staging
+    
+    steps:
+    - name: Deploy notification
+      run: |
+        echo "🚀 Deploying Proxmox Web Applications to staging environment"
+        echo "Images available at:"
+        echo "- ghcr.io/${{ github.repository }}/proxmox-web:${{ github.sha }}"
+        echo "- ghcr.io/${{ github.repository }}/proxmox-blazor:${{ github.sha }}"
+    
+    # Add your actual deployment steps here
+    # Example: kubectl, helm, docker-compose, etc.
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [build-aspnet-web, build-blazor-app]
+    if: always() && (needs.build-aspnet-web.result == 'success' || needs.build-blazor-app.result == 'success')
+    
+    services:
+      proxmox-mock:
+        image: nginx:alpine
+        ports:
+          - 8006:80
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Run integration tests
+      run: |
+        echo "🧪 Running integration tests against mock Proxmox environment"
+        # Add your integration test commands here
+        # dotnet test src/ProxmoxWeb.IntegrationTests/
+      env:
+        PROXMOX_TEST_HOST: localhost:8006
+        PROXMOX_TEST_USER: test@pam
+        PROXMOX_TEST_PASS: testpassword

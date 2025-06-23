@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ProxmoxApi;
 using ProxmoxApi.Models;
 using ProxmoxApi.Exceptions;
+using ProxmoxApi.Examples;
 
 class Program
 {    static async Task Main(string[] args)
@@ -100,9 +102,45 @@ class Program
             else
             {
                 Console.WriteLine("⚠️  Could not retrieve version information");
+            }            Console.WriteLine("\n🎉 Basic tests completed successfully!");
+            
+            // Advanced Features Testing
+            Console.WriteLine("\n" + new string('=', 50));
+            Console.WriteLine("Advanced Feature Testing");
+            Console.WriteLine(new string('=', 50));
+              Console.WriteLine("\nChoose advanced test to run:");
+            Console.WriteLine("1. Node Management Test");
+            Console.WriteLine("2. VM Management Test");
+            Console.WriteLine("3. Container Management Test");
+            Console.WriteLine("4. All Advanced Tests");
+            Console.WriteLine("5. Skip advanced tests");
+            Console.Write("Enter choice (1-5): ");
+            
+            var advancedChoice = Console.ReadLine()?.Trim();
+            
+            switch (advancedChoice)
+            {
+                case "1":
+                    await RunNodeManagementTest(client, logger);
+                    break;
+                case "2":
+                    await RunVmManagementTest(client, logger);
+                    break;
+                case "3":
+                    await RunContainerManagementTest(client, logger);
+                    break;
+                case "4":
+                    await RunNodeManagementTest(client, logger);
+                    await RunVmManagementTest(client, logger);
+                    await RunContainerManagementTest(client, logger);
+                    break;
+                case "5":
+                default:
+                    Console.WriteLine("Skipping advanced tests.");
+                    break;
             }
-
-            Console.WriteLine("\n🎉 All tests completed successfully!");
+            
+            Console.WriteLine("\n🎉 All selected tests completed!");
             Console.WriteLine("The ProxmoxApi library is working correctly with your server.");
         }
         catch (ProxmoxAuthenticationException ex)
@@ -258,5 +296,93 @@ class Program
         
         Console.WriteLine();
         return password;
+    }    private static async Task RunNodeManagementTest(ProxmoxClient client, ILogger logger)
+    {
+        try
+        {
+            Console.WriteLine("\n" + new string('-', 40));
+            Console.WriteLine("Node Management Test");
+            Console.WriteLine(new string('-', 40));
+            
+            // Get all nodes in the cluster
+            Console.WriteLine("\n📋 Getting cluster nodes...");
+            var nodes = await client.Nodes.GetNodesAsync();
+              Console.WriteLine($"Found {nodes.Count} nodes:");
+            foreach (var node in nodes)
+            {
+                Console.WriteLine($"  📍 {node.Node} - Status: {node.Status} - Type: {node.Type}");
+                if (node.Status == "online" && node.CpuUsage.HasValue && node.MemoryUsed.HasValue && node.MemoryTotal.HasValue)
+                {
+                    Console.WriteLine($"     CPU: {node.CpuUsage:P2}, Memory: {node.MemoryUsed / (1024.0 * 1024 * 1024):F1}/{node.MemoryTotal / (1024.0 * 1024 * 1024):F1} GB");
+                }
+            }
+
+            if (nodes.Count > 0)
+            {
+                // Demonstrate detailed node operations with the first node
+                var firstNode = nodes.First();
+                Console.WriteLine($"\n🔍 Getting detailed information for node '{firstNode.Node}':");
+                  var nodeStatus = await client.Nodes.GetNodeStatusAsync(firstNode.Node);
+                if (nodeStatus != null)
+                {                    Console.WriteLine($"  Uptime: {nodeStatus.Uptime}s");
+                    if (nodeStatus.LoadAverage != null && nodeStatus.LoadAverage.Length > 0)
+                    {
+                        Console.WriteLine($"  Load Average: {string.Join(", ", nodeStatus.LoadAverage)}");
+                    }
+                    Console.WriteLine($"  CPU Info: {nodeStatus.CpuInfo?.Model}");
+                    Console.WriteLine($"  Memory: {nodeStatus.Memory?.Total / (1024.0 * 1024 * 1024):F1} GB total");
+                }
+
+                var nodeStats = await client.Nodes.GetNodeStatisticsAsync(firstNode.Node);
+                if (nodeStats != null && nodeStats.Count > 0)
+                {
+                    Console.WriteLine($"  Statistics data points: {nodeStats.Count}");
+                    Console.WriteLine("  (Raw statistics available for advanced processing)");
+                }
+            }
+            
+            Console.WriteLine("✅ Node Management Test completed successfully!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Node Management Test Failed: {ex.Message}");
+            logger.LogError(ex, "Node management test failed");
+        }
+    }
+
+    private static async Task RunVmManagementTest(ProxmoxClient client, ILogger logger)
+    {
+        try
+        {
+            Console.WriteLine("\n" + new string('-', 40));
+            Console.WriteLine("VM Management Test");
+            Console.WriteLine(new string('-', 40));
+            
+            await VmManagementExample.RunExampleAsync(client, logger);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ VM Management Test Failed: {ex.Message}");
+            logger.LogError(ex, "VM management test failed");
+        }
+    }    private static async Task RunContainerManagementTest(ProxmoxClient client, ILogger logger)
+    {
+        try
+        {
+            Console.WriteLine("\n" + new string('-', 40));
+            Console.WriteLine("Container Management Test");
+            Console.WriteLine(new string('-', 40));
+            
+            var containerLogger = LoggerFactory.Create(builder => builder.AddConsole())
+                .CreateLogger<ContainerManagementExample>();
+            
+            var containerExample = new ContainerManagementExample(client, containerLogger);
+            await containerExample.RunExample();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Container Management Test Failed: {ex.Message}");
+            logger.LogError(ex, "Container management test failed");
+        }
     }
 }

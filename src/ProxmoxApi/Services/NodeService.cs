@@ -12,11 +12,10 @@ namespace ProxmoxApi.Services;
 /// Service for managing Proxmox nodes
 /// </summary>
 public class NodeService
-{
-    private readonly ProxmoxHttpClient _httpClient;
+{    private readonly IProxmoxHttpClient _httpClient;
     private readonly ILogger<NodeService> _logger;
 
-    public NodeService(ProxmoxHttpClient httpClient, ILogger<NodeService> logger)
+    public NodeService(IProxmoxHttpClient httpClient, ILogger<NodeService> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

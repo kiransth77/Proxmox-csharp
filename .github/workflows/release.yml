@@ -1,0 +1,228 @@
+name: Release Management
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-*'
+
+env:
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  validate-tag:
+    name: Validate Release Tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-prerelease: ${{ steps.version.outputs.is-prerelease }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Extract version from tag
+      id: version
+      run: |
+        TAG=${GITHUB_REF#refs/tags/}
+        VERSION=${TAG#v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+        if [[ $VERSION == *"-"* ]]; then
+          echo "is-prerelease=true" >> $GITHUB_OUTPUT
+        else
+          echo "is-prerelease=false" >> $GITHUB_OUTPUT
+        fi
+        
+        echo "🏷️ Release version: $VERSION"
+        echo "🔄 Is prerelease: $([ $VERSION == *"-"* ] && echo "true" || echo "false")"
+
+  build-release:
+    name: Build Release Packages
+    runs-on: ubuntu-latest
+    needs: validate-tag
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore Proxmox_web.sln
+    
+    - name: Build solution
+      run: dotnet build Proxmox_web.sln --configuration Release --no-restore
+    
+    - name: Run tests
+      run: dotnet test Proxmox_web.sln --configuration Release --no-build --verbosity normal
+    
+    - name: Pack ProxmoxApi library
+      run: |
+        dotnet pack src/ProxmoxApi/ProxmoxApi.csproj \
+          --configuration Release \
+          --no-build \
+          --output ./release-packages \
+          -p:PackageVersion=${{ needs.validate-tag.outputs.version }} \
+          -p:AssemblyVersion=${{ needs.validate-tag.outputs.version }} \
+          -p:FileVersion=${{ needs.validate-tag.outputs.version }}
+    
+    - name: Generate release notes
+      run: |
+        cat > release-notes.md << 'EOF'
+        # ProxmoxApi v${{ needs.validate-tag.outputs.version }}
+        
+        ## 📦 Package Information
+        - **Version**: ${{ needs.validate-tag.outputs.version }}
+        - **Release Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        - **Target Framework**: .NET 8.0
+        - **Package Type**: ${{ needs.validate-tag.outputs.is-prerelease == 'true' && 'Pre-release' || 'Stable Release' }}
+        
+        ## 🚀 Features Included
+        - ✅ **Node Management**: Complete node operations and monitoring
+        - ✅ **VM Management**: Full virtual machine lifecycle management
+        - ✅ **LXC Container Management**: Comprehensive container operations
+        - ✅ **Authentication**: Username/password and API token support
+        - ✅ **Error Handling**: Comprehensive exception hierarchy
+        - ✅ **Logging**: Microsoft.Extensions.Logging integration
+        - ✅ **Testing**: Extensive unit and integration test coverage
+        
+        ## 📋 API Coverage
+        ### Node Operations
+        - List and monitor cluster nodes
+        - Get node status, statistics, and health information
+        - Node lifecycle management (reboot, shutdown)
+        - Version and subscription information
+        
+        ### Virtual Machine Operations
+        - VM lifecycle management (start, stop, restart, pause, resume)
+        - VM configuration and statistics
+        - Snapshot management (create, list, delete)
+        - VM cloning and migration
+        
+        ### LXC Container Operations
+        - Container lifecycle management (start, stop, restart)
+        - Container configuration and statistics
+        - Container snapshot management
+        - Container networking and storage
+        
+        ## 📚 Documentation
+        - Comprehensive API documentation
+        - Usage examples for all major operations
+        - Interactive test application included
+        
+        ## 🔧 Installation
+        ```bash
+        dotnet add package ProxmoxApi --version ${{ needs.validate-tag.outputs.version }}
+        ```
+        
+        ## 🐛 Bug Reports & Feature Requests
+        Please report issues on our [GitHub Issues](https://github.com/${{ github.repository }}/issues) page.
+        
+        ---
+        
+        **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ needs.validate-tag.outputs.version }}
+        EOF
+    
+    - name: Upload release artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-artifacts
+        path: |
+          ./release-packages/
+          release-notes.md
+
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate-tag, build-release]
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download release artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: release-artifacts
+        path: ./artifacts
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: ProxmoxApi v${{ needs.validate-tag.outputs.version }}
+        body_path: ./artifacts/release-notes.md
+        prerelease: ${{ needs.validate-tag.outputs.is-prerelease == 'true' }}
+        draft: false
+        files: |
+          ./artifacts/release-packages/*.nupkg
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-nuget:
+    name: Publish to NuGet
+    runs-on: ubuntu-latest
+    needs: [validate-tag, build-release, create-github-release]
+    if: secrets.NUGET_API_KEY != ''
+    environment: production
+    
+    steps:
+    - name: Download release artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: release-artifacts
+        path: ./artifacts
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Publish to NuGet (Prerelease)
+      if: needs.validate-tag.outputs.is-prerelease == 'true'
+      run: |
+        dotnet nuget push "./artifacts/release-packages/*.nupkg" \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+    
+    - name: Publish to NuGet (Stable)
+      if: needs.validate-tag.outputs.is-prerelease == 'false'
+      run: |
+        dotnet nuget push "./artifacts/release-packages/*.nupkg" \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+    
+    - name: Announce release
+      run: |
+        echo "🎉 ProxmoxApi v${{ needs.validate-tag.outputs.version }} has been published to NuGet!"
+        echo "📦 Package: https://www.nuget.org/packages/ProxmoxApi/${{ needs.validate-tag.outputs.version }}"
+
+  notify-release:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [validate-tag, create-github-release, publish-nuget]
+    if: always()
+    
+    steps:
+    - name: Release completion notification
+      run: |
+        echo "🎯 Release Process Complete"
+        echo "Version: ${{ needs.validate-tag.outputs.version }}"
+        echo "GitHub Release: ${{ needs.create-github-release.result }}"
+        echo "NuGet Publication: ${{ needs.publish-nuget.result }}"
+        
+        if [ "${{ needs.create-github-release.result }}" = "success" ] && [ "${{ needs.publish-nuget.result }}" = "success" ]; then
+          echo "✅ All release steps completed successfully!"
+        elif [ "${{ needs.create-github-release.result }}" = "success" ]; then
+          echo "⚠️ GitHub release created, but NuGet publication may have failed or been skipped"
+        else
+          echo "❌ Release process encountered issues"
+        fi

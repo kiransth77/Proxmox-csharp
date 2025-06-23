@@ -21,12 +21,24 @@ public class ProxmoxClient : IDisposable
 {    private readonly ProxmoxHttpClient _httpClient;
     private readonly ILogger<ProxmoxClient> _logger;
     private readonly NodeService _nodeService;
+    private readonly VmService _vmService;
+    private readonly ContainerService _containerService;
     private bool _disposed;
 
     /// <summary>
     /// Node management service
     /// </summary>
     public NodeService Nodes => _nodeService;
+
+    /// <summary>
+    /// Virtual Machine management service
+    /// </summary>
+    public VmService Vms => _vmService;
+
+    /// <summary>
+    /// Container (LXC) management service
+    /// </summary>
+    public ContainerService Containers => _containerService;
 
     /// <summary>
     /// Initializes a new instance of ProxmoxClient
@@ -54,6 +66,18 @@ public class ProxmoxClient : IDisposable
             .BuildServiceProvider()
             .GetRequiredService<ILogger<NodeService>>();
         _nodeService = new NodeService(_httpClient, nodeLogger);
+        
+        var vmLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<VmService>>();
+        _vmService = new VmService(_httpClient, vmLogger);
+        
+        var containerLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<ContainerService>>();
+        _containerService = new ContainerService(_httpClient, containerLogger);
     }
 
     /// <summary>
@@ -80,6 +104,18 @@ public class ProxmoxClient : IDisposable
             .BuildServiceProvider()
             .GetRequiredService<ILogger<NodeService>>();
         _nodeService = new NodeService(_httpClient, nodeLogger);
+        
+        var vmLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<VmService>>();
+        _vmService = new VmService(_httpClient, vmLogger);
+        
+        var containerLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<ContainerService>>();
+        _containerService = new ContainerService(_httpClient, containerLogger);
     }
 
     /// <summary>

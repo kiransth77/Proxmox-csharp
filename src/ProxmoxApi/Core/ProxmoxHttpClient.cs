@@ -16,7 +16,7 @@ namespace ProxmoxApi.Core;
 /// <summary>
 /// HTTP client wrapper for Proxmox API communication
 /// </summary>
-public class ProxmoxHttpClient : IDisposable
+public class ProxmoxHttpClient : IProxmoxHttpClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<ProxmoxHttpClient> _logger;
@@ -153,6 +153,49 @@ public class ProxmoxHttpClient : IDisposable
         }
 
         var response = await _httpClient.PostAsync(endpoint, content, cancellationToken);
+        return await ProcessResponseAsync<T>(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Makes a PUT request to the Proxmox API
+    /// </summary>
+    public async Task<T> PutAsync<T>(string endpoint, object? data = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Making PUT request to {Endpoint}", endpoint);
+        
+        HttpContent? content = null;
+        if (data != null)
+        {
+            var json = JsonSerializer.Serialize(data, _jsonOptions);
+            content = new StringContent(json, Encoding.UTF8, "application/json");
+        }
+
+        // Add CSRF token for PUT requests when using ticket authentication
+        if (!string.IsNullOrEmpty(_csrfToken))
+        {
+            _httpClient.DefaultRequestHeaders.Remove("CSRFPreventionToken");
+            _httpClient.DefaultRequestHeaders.Add("CSRFPreventionToken", _csrfToken);
+        }
+
+        var response = await _httpClient.PutAsync(endpoint, content, cancellationToken);
+        return await ProcessResponseAsync<T>(response, cancellationToken);
+    }
+
+    /// <summary>
+    /// Makes a DELETE request to the Proxmox API
+    /// </summary>
+    public async Task<T> DeleteAsync<T>(string endpoint, CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Making DELETE request to {Endpoint}", endpoint);
+        
+        // Add CSRF token for DELETE requests when using ticket authentication
+        if (!string.IsNullOrEmpty(_csrfToken))
+        {
+            _httpClient.DefaultRequestHeaders.Remove("CSRFPreventionToken");
+            _httpClient.DefaultRequestHeaders.Add("CSRFPreventionToken", _csrfToken);
+        }
+
+        var response = await _httpClient.DeleteAsync(endpoint, cancellationToken);
         return await ProcessResponseAsync<T>(response, cancellationToken);
     }
 

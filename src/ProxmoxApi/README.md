@@ -25,6 +25,26 @@ A C# client library for interacting with Proxmox VE REST API.
 - ✅ **Real-time Monitoring**: Check node online status and health
 - ✅ **Cluster Summary**: Get overview of all nodes with their status
 
+### Iteration 3 - Virtual Machine Management (COMPLETED ✅)
+- ✅ **VM Discovery**: List all VMs across nodes or on specific nodes
+- ✅ **VM Lifecycle**: Start, stop, restart, shutdown, suspend, and resume VMs
+- ✅ **VM Status & Monitoring**: Get detailed status and real-time statistics
+- ✅ **VM Configuration**: Retrieve and update VM configuration settings
+- ✅ **VM Snapshots**: Create, list, and delete VM snapshots
+- ✅ **VM Cloning**: Clone VMs with configurable options
+- ✅ **VM Deletion**: Safely delete VMs with confirmation
+- ✅ **Resource Monitoring**: Track CPU, memory, disk, and network usage
+
+### Iteration 4 - Container (LXC) Management (COMPLETED ✅)
+- ✅ **Container Discovery**: List all LXC containers on nodes
+- ✅ **Container Lifecycle**: Start, stop, restart, shutdown, suspend, and resume containers
+- ✅ **Container Status & Monitoring**: Get detailed status and real-time statistics  
+- ✅ **Container Configuration**: Retrieve and update container configuration
+- ✅ **Container Snapshots**: Create, list, and delete container snapshots
+- ✅ **Container Cloning**: Clone containers with customizable parameters
+- ✅ **Container Deletion**: Safely delete containers with optional snapshot cleanup
+- ✅ **Resource Monitoring**: Track CPU, memory, disk, and network usage for containers
+
 ## Installation
 
 Add the package reference to your project:
@@ -187,6 +207,151 @@ Detailed status information including:
 - `CpuInfo`: Detailed CPU information
 - `Memory`: Memory statistics
 - `RootFs`: Root filesystem usage
+
+## Container (LXC) Management API
+
+### Basic Container Operations
+
+```csharp
+// Get all containers on a node
+var containers = await client.Containers.GetContainersAsync("node1");
+
+// Get detailed container status
+var containerStatus = await client.Containers.GetContainerStatusAsync("node1", 100);
+
+// Get container configuration
+var config = await client.Containers.GetContainerConfigAsync("node1", 100);
+
+// Get real-time container statistics
+var stats = await client.Containers.GetContainerStatisticsAsync("node1", 100);
+```
+
+### Container Lifecycle Management
+
+```csharp
+// Start a container
+var startTask = await client.Containers.StartContainerAsync("node1", 100);
+
+// Stop a container (force stop)
+var stopTask = await client.Containers.StopContainerAsync("node1", 100);
+
+// Gracefully shutdown a container (with 30 second timeout)
+var shutdownTask = await client.Containers.ShutdownContainerAsync("node1", 100, 30);
+
+// Restart a container
+var restartTask = await client.Containers.RestartContainerAsync("node1", 100, 30);
+
+// Suspend a container
+var suspendTask = await client.Containers.SuspendContainerAsync("node1", 100);
+
+// Resume a suspended container
+var resumeTask = await client.Containers.ResumeContainerAsync("node1", 100);
+
+// All lifecycle operations return task IDs for monitoring
+Console.WriteLine($"Container operation started: {startTask}");
+```
+
+### Container Snapshots
+
+```csharp
+// List all snapshots for a container
+var snapshots = await client.Containers.GetContainerSnapshotsAsync("node1", 100);
+
+// Create a new snapshot
+var snapshotTask = await client.Containers.CreateContainerSnapshotAsync(
+    "node1", 100, "backup-before-update", "Snapshot before system update");
+
+// Delete a snapshot
+var deleteTask = await client.Containers.DeleteContainerSnapshotAsync("node1", 100, "backup-before-update");
+```
+
+### Advanced Container Operations
+
+```csharp
+// Clone a container
+var cloneTask = await client.Containers.CloneContainerAsync(
+    "node1", 100, 200, "cloned-container", "Cloned from container 100");
+
+// Update container configuration
+var configUpdates = new Dictionary<string, object>
+{
+    {"memory", 2048},        // Set memory to 2GB
+    {"cores", 4},            // Set CPU cores to 4
+    {"description", "Updated container configuration"}
+};
+var updateTask = await client.Containers.UpdateContainerConfigAsync("node1", 100, configUpdates);
+
+// Delete a container (with optional snapshot cleanup)
+var deleteTask = await client.Containers.DeleteContainerAsync("node1", 100, purgeSnapshots: true);
+```
+
+### Container Monitoring Example
+
+```csharp
+// Monitor containers across all nodes
+var allNodes = await client.Nodes.GetNodesAsync();
+
+foreach (var node in allNodes.Where(n => n.IsOnline))
+{
+    var containers = await client.Containers.GetContainersAsync(node.Node);
+    
+    Console.WriteLine($"Node: {node.Node} - {containers.Count} containers");
+    
+    foreach (var container in containers)
+    {
+        Console.WriteLine($"  Container {container.ContainerId}: {container.Name}");
+        Console.WriteLine($"    Status: {container.Status}");
+        Console.WriteLine($"    Memory: {container.Memory / 1024 / 1024}MB");
+        Console.WriteLine($"    Cores: {container.Cores}");
+        
+        // Get real-time statistics for running containers
+        if (container.Status == "running")
+        {
+            var stats = await client.Containers.GetContainerStatisticsAsync(node.Node, container.ContainerId);
+            Console.WriteLine($"    CPU Usage: {stats.CpuUsage * 100:F1}%");
+            Console.WriteLine($"    Memory Usage: {stats.MemoryUsage / 1024 / 1024:F0}MB of {stats.MaxMemory / 1024 / 1024:F0}MB");
+            Console.WriteLine($"    Network In/Out: {stats.NetworkIn / 1024:F0}KB / {stats.NetworkOut / 1024:F0}KB");
+        }
+    }
+}
+```
+
+## Container Models
+
+### ProxmoxContainer
+Main container object with properties:
+- `ContainerId`: Unique container ID (integer)
+- `Name`: Container hostname/name
+- `Status`: Current status (running, stopped, etc.)
+- `Node`: Node where container is located
+- `Memory`: Allocated memory in bytes
+- `Cores`: Number of CPU cores
+- `Template`: OS template used
+
+### ContainerStatus
+Real-time container status:
+- `Status`: Current status string
+- `Uptime`: Container uptime in seconds
+- `ProcessId`: Container process ID
+- `CpuUsage`: Current CPU usage percentage
+- `MemoryUsage`: Current memory usage in bytes
+
+### ContainerStatistics
+Detailed performance statistics:
+- `CpuUsage`: CPU usage (0.0 to 1.0)
+- `MemoryUsage`, `MaxMemory`: Memory statistics
+- `NetworkIn`, `NetworkOut`: Network traffic counters
+- `DiskRead`, `DiskWrite`: Disk I/O counters
+
+### ContainerConfig
+Container configuration settings:
+- `Architecture`: Container architecture (amd64, etc.)
+- `Cores`, `CpuLimit`: CPU configuration
+- `Memory`, `Swap`: Memory configuration
+- `Hostname`: Container hostname
+- `Description`: Container description
+- `OsType`: Operating system type
+- `NetworkInterfaces`: Network configuration
 
 ## Error Handling
 
