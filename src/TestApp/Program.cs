@@ -107,18 +107,17 @@ class Program
             // Advanced Features Testing
             Console.WriteLine("\n" + new string('=', 50));
             Console.WriteLine("Advanced Feature Testing");
-            Console.WriteLine(new string('=', 50));
-              Console.WriteLine("\nChoose advanced test to run:");
+            Console.WriteLine(new string('=', 50));            Console.WriteLine("\nChoose advanced test to run:");
             Console.WriteLine("1. Node Management Test");
             Console.WriteLine("2. VM Management Test");
             Console.WriteLine("3. Container Management Test");
-            Console.WriteLine("4. All Advanced Tests");
-            Console.WriteLine("5. Skip advanced tests");
-            Console.Write("Enter choice (1-5): ");
+            Console.WriteLine("4. Storage Management Test");
+            Console.WriteLine("5. All Advanced Tests");
+            Console.WriteLine("6. Skip advanced tests");
+            Console.Write("Enter choice (1-6): ");
             
             var advancedChoice = Console.ReadLine()?.Trim();
-            
-            switch (advancedChoice)
+              switch (advancedChoice)
             {
                 case "1":
                     await RunNodeManagementTest(client, logger);
@@ -130,11 +129,15 @@ class Program
                     await RunContainerManagementTest(client, logger);
                     break;
                 case "4":
+                    await RunStorageManagementTest(client, logger);
+                    break;
+                case "5":
                     await RunNodeManagementTest(client, logger);
                     await RunVmManagementTest(client, logger);
                     await RunContainerManagementTest(client, logger);
+                    await RunStorageManagementTest(client, logger);
                     break;
-                case "5":
+                case "6":
                 default:
                     Console.WriteLine("Skipping advanced tests.");
                     break;
@@ -383,6 +386,29 @@ class Program
         {
             Console.WriteLine($"❌ Container Management Test Failed: {ex.Message}");
             logger.LogError(ex, "Container management test failed");
+        }
+    }
+
+    private static async Task RunStorageManagementTest(ProxmoxClient client, ILogger logger)
+    {
+        try
+        {
+            Console.WriteLine("\n" + new string('-', 40));
+            Console.WriteLine("Storage Management Test");
+            Console.WriteLine(new string('-', 40));
+            
+            // Get first available node for storage operations
+            var nodes = await client.Nodes.GetNodesAsync();
+            var nodeName = nodes.FirstOrDefault()?.Node ?? "pve";
+            
+            Console.WriteLine($"Using node '{nodeName}' for storage testing");
+            
+            await StorageManagementExample.RunStorageManagementExampleAsync(client, nodeName);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Storage Management Test Failed: {ex.Message}");
+            logger.LogError(ex, "Storage management test failed");
         }
     }
 }

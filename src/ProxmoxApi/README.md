@@ -45,6 +45,16 @@ A C# client library for interacting with Proxmox VE REST API.
 - ✅ **Container Deletion**: Safely delete containers with optional snapshot cleanup
 - ✅ **Resource Monitoring**: Track CPU, memory, disk, and network usage for containers
 
+### Iteration 5 - Storage Management (COMPLETED ✅)
+- ✅ **Storage Configuration**: List, create, update, and delete storage configurations
+- ✅ **Storage Status & Monitoring**: Monitor storage usage, capacity, and health across nodes
+- ✅ **Storage Content Management**: Browse, upload, and manage files in storage
+- ✅ **Volume Operations**: Create, delete, copy, and move volumes between storages
+- ✅ **Backup Management**: List, download, and manage backup files
+- ✅ **ISO & Template Management**: Manage ISO images and container templates
+- ✅ **Multi-Storage Support**: Handle directory, LVM, NFS, Ceph, and other storage types
+- ✅ **Content Filtering**: Filter storage content by type (images, backups, ISOs, templates)
+
 ## Installation
 
 Add the package reference to your project:

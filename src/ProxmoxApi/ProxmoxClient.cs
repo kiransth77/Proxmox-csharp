@@ -23,6 +23,7 @@ public class ProxmoxClient : IDisposable
     private readonly NodeService _nodeService;
     private readonly VmService _vmService;
     private readonly ContainerService _containerService;
+    private readonly StorageService _storageService;
     private bool _disposed;
 
     /// <summary>
@@ -39,6 +40,11 @@ public class ProxmoxClient : IDisposable
     /// Container (LXC) management service
     /// </summary>
     public ContainerService Containers => _containerService;
+
+    /// <summary>
+    /// Storage management service
+    /// </summary>
+    public StorageService Storage => _storageService;
 
     /// <summary>
     /// Initializes a new instance of ProxmoxClient
@@ -78,6 +84,12 @@ public class ProxmoxClient : IDisposable
             .BuildServiceProvider()
             .GetRequiredService<ILogger<ContainerService>>();
         _containerService = new ContainerService(_httpClient, containerLogger);
+        
+        var storageLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<StorageService>>();
+        _storageService = new StorageService(_httpClient, storageLogger);
     }
 
     /// <summary>
@@ -116,6 +128,12 @@ public class ProxmoxClient : IDisposable
             .BuildServiceProvider()
             .GetRequiredService<ILogger<ContainerService>>();
         _containerService = new ContainerService(_httpClient, containerLogger);
+        
+        var storageLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<StorageService>>();
+        _storageService = new StorageService(_httpClient, storageLogger);
     }
 
     /// <summary>
