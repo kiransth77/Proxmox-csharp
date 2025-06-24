@@ -205,32 +205,32 @@ public class ProxmoxHttpClient : IProxmoxHttpClient
         _httpClient.BaseAddress = new Uri(_connectionInfo.BaseUrl);
         _httpClient.Timeout = TimeSpan.FromSeconds(_connectionInfo.TimeoutSeconds);
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "ProxmoxApi-Client/1.0");
-    }
-
-    private async Task<T> ProcessResponseAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
+    }    private async Task<T> ProcessResponseAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
         
         if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("API request failed with status {StatusCode}: {Content}", response.StatusCode, content);
+
+            var statusCode = (int)response.StatusCode;
+            var message = $"API request failed with status {statusCode}";
+
+            if (statusCode == 401)
             {
-                _logger.LogError("API request failed with status {StatusCode}: {Content}", response.StatusCode, content);
+                throw new ProxmoxAuthenticationException(message);
+            }
+            else if (statusCode == 403)
+            {
+                throw new ProxmoxAuthorizationException(message);
+            }
+            else
+            {
+                throw new ProxmoxApiException(message, statusCode);
+            }
+        }
 
-                var statusCode = (int)response.StatusCode;
-                var message = $"API request failed with status {statusCode}";
-
-                if (statusCode == 401)
-                {
-                    throw new ProxmoxAuthenticationException(message);
-                }
-                else if (statusCode == 403)
-                {
-                    throw new ProxmoxAuthorizationException(message);
-                }
-                else
-                {
-                    throw new ProxmoxApiException(message, statusCode);
-                }
-            }        if (string.IsNullOrEmpty(content))
+        if (string.IsNullOrEmpty(content))
         {
             return default!;
         }
