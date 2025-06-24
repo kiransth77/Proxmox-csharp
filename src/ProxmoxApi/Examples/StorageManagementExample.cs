@@ -2,7 +2,8 @@ using System;
 using System.Threading.Tasks;
 using ProxmoxApi;
 using ProxmoxApi.Models;
-
+using System.Linq;
+using System.Collections.Generic;
 namespace ProxmoxApi.Examples;
 
 /// <summary>
@@ -319,7 +320,7 @@ public static class StorageManagementExample
         Console.WriteLine("============================================");
         Console.WriteLine("NOTE: This example demonstrates storage creation/deletion.");
         Console.WriteLine("These operations are commented out for safety.");
-        
+
         /*
         // Example: Create a directory storage
         var storageOptions = new StorageCreateOptions
@@ -350,6 +351,7 @@ public static class StorageManagementExample
 
         Console.WriteLine("Storage lifecycle operations completed (simulated).");
         Console.WriteLine();
+        await Task.CompletedTask;
     }
 
     /// <summary>

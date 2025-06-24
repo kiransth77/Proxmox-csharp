@@ -10,6 +10,7 @@ using ProxmoxApi.Models;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ProxmoxApi.Core;
 
@@ -211,39 +212,44 @@ public class ProxmoxHttpClient : IProxmoxHttpClient
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
         
         if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("API request failed with status {StatusCode}: {Content}", response.StatusCode, content);
+
+                var statusCode = (int)response.StatusCode;
+                var message = $"API request failed with status {statusCode}";
+
+                if (statusCode == 401)
+                {
+                    throw new ProxmoxAuthenticationException(message);
+                }
+                else if (statusCode == 403)
+                {
+                    throw new ProxmoxAuthorizationException(message);
+                }
+                else
+                {
+                    throw new ProxmoxApiException(message, statusCode);
+                }
+            }        if (string.IsNullOrEmpty(content))
         {
-            _logger.LogError("API request failed with status {StatusCode}: {Content}", response.StatusCode, content);
-            
-            var statusCode = (int)response.StatusCode;
-            var message = $"API request failed with status {statusCode}";
-            
-            if (statusCode == 401)
-            {
-                throw new ProxmoxAuthenticationException(message);
-            }
-            else if (statusCode == 403)
-            {
-                throw new ProxmoxAuthorizationException(message);
-            }
-            else
-            {
-                throw new ProxmoxApiException(message, statusCode);
-            }
-        }        if (string.IsNullOrEmpty(content))
-        {
-            return default(T);
+            return default!;
         }
 
         try
         {
-            var apiResponse = JsonSerializer.Deserialize<ProxmoxApiResponse<T>>(content, _jsonOptions);            if (apiResponse?.IsSuccess == false)
+            var apiResponse = JsonSerializer.Deserialize<ProxmoxApiResponse<T>>(content, _jsonOptions);
+            if (apiResponse?.IsSuccess == false)
             {
                 var errorValues = apiResponse.Errors?.Values;
                 var errorMessage = errorValues != null ? string.Join("; ", errorValues) : "Unknown error";
                 throw new ProxmoxApiException($"API returned errors: {errorMessage}");
             }
             
-            return apiResponse != null ? apiResponse.Data : default(T);
+            if (apiResponse == null || apiResponse.Data == null)
+            {
+                throw new ProxmoxApiException("API response or data was null.");
+            }
+            return apiResponse.Data;
         }
         catch (JsonException ex)
         {
