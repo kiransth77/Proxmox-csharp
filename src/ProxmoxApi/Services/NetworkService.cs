@@ -43,7 +43,7 @@ public class NetworkService
         _logger.LogDebug("Getting network interfaces for node {NodeName}", nodeName);
 
         var response = await _httpClient.GetAsync<List<NetworkInterface>>(
-            $"nodes/{nodeName}/network", 
+            $"nodes/{nodeName}/network",
             cancellationToken);
 
         return response ?? new List<NetworkInterface>();
@@ -64,7 +64,7 @@ public class NetworkService
         _logger.LogDebug("Getting network interface {InterfaceName} for node {NodeName}", interfaceName, nodeName);
 
         var response = await _httpClient.GetAsync<NetworkInterface>(
-            $"nodes/{nodeName}/network/{interfaceName}", 
+            $"nodes/{nodeName}/network/{interfaceName}",
             cancellationToken);
 
         return response;
@@ -86,8 +86,8 @@ public class NetworkService
         _logger.LogDebug("Creating network interface {InterfaceName} on node {NodeName}", options.InterfaceName, nodeName);
 
         await _httpClient.PostAsync<object>(
-            $"nodes/{nodeName}/network", 
-            options, 
+            $"nodes/{nodeName}/network",
+            options,
             cancellationToken);
 
         _logger.LogInformation("Network interface {InterfaceName} created successfully on node {NodeName}", options.InterfaceName, nodeName);
@@ -110,8 +110,8 @@ public class NetworkService
         _logger.LogDebug("Updating network interface {InterfaceName} on node {NodeName}", interfaceName, nodeName);
 
         await _httpClient.PutAsync<object>(
-            $"nodes/{nodeName}/network/{interfaceName}", 
-            options, 
+            $"nodes/{nodeName}/network/{interfaceName}",
+            options,
             cancellationToken);
 
         _logger.LogInformation("Network interface {InterfaceName} updated successfully on node {NodeName}", interfaceName, nodeName);
@@ -132,7 +132,7 @@ public class NetworkService
         _logger.LogDebug("Deleting network interface {InterfaceName} from node {NodeName}", interfaceName, nodeName);
 
         await _httpClient.DeleteAsync<object>(
-            $"nodes/{nodeName}/network/{interfaceName}", 
+            $"nodes/{nodeName}/network/{interfaceName}",
             cancellationToken);
 
         _logger.LogInformation("Network interface {InterfaceName} deleted successfully from node {NodeName}", interfaceName, nodeName);
@@ -155,7 +155,7 @@ public class NetworkService
         _logger.LogDebug("Getting network status for node {NodeName}", nodeName);
 
         var response = await _httpClient.GetAsync<NetworkStatus>(
-            $"nodes/{nodeName}/status", 
+            $"nodes/{nodeName}/status",
             cancellationToken);
 
         return response;
@@ -174,8 +174,8 @@ public class NetworkService
         _logger.LogDebug("Applying network configuration for node {NodeName}", nodeName);
 
         await _httpClient.PutAsync<object>(
-            $"nodes/{nodeName}/network", 
-            new { }, 
+            $"nodes/{nodeName}/network",
+            new { },
             cancellationToken);
 
         _logger.LogInformation("Network configuration applied successfully for node {NodeName}", nodeName);
@@ -194,7 +194,7 @@ public class NetworkService
         _logger.LogDebug("Reverting network configuration for node {NodeName}", nodeName);
 
         await _httpClient.DeleteAsync<object>(
-            $"nodes/{nodeName}/network", 
+            $"nodes/{nodeName}/network",
             cancellationToken);
 
         _logger.LogInformation("Network configuration reverted successfully for node {NodeName}", nodeName);
@@ -217,7 +217,7 @@ public class NetworkService
         _logger.LogDebug("Getting firewall rules for node {NodeName}", nodeName);
 
         var response = await _httpClient.GetAsync<List<FirewallRule>>(
-            $"nodes/{nodeName}/firewall/rules", 
+            $"nodes/{nodeName}/firewall/rules",
             cancellationToken);
 
         return response ?? new List<FirewallRule>();
@@ -237,7 +237,7 @@ public class NetworkService
         _logger.LogDebug("Getting firewall rule at position {Position} for node {NodeName}", position, nodeName);
 
         var response = await _httpClient.GetAsync<FirewallRule>(
-            $"nodes/{nodeName}/firewall/rules/{position}", 
+            $"nodes/{nodeName}/firewall/rules/{position}",
             cancellationToken);
 
         return response;
@@ -258,8 +258,8 @@ public class NetworkService
         _logger.LogDebug("Creating firewall rule on node {NodeName}", nodeName);
 
         await _httpClient.PostAsync<object>(
-            $"nodes/{nodeName}/firewall/rules", 
-            options, 
+            $"nodes/{nodeName}/firewall/rules",
+            options,
             cancellationToken);
 
         _logger.LogInformation("Firewall rule created successfully on node {NodeName}", nodeName);
@@ -281,8 +281,8 @@ public class NetworkService
         _logger.LogDebug("Updating firewall rule at position {Position} on node {NodeName}", position, nodeName);
 
         await _httpClient.PutAsync<object>(
-            $"nodes/{nodeName}/firewall/rules/{position}", 
-            options, 
+            $"nodes/{nodeName}/firewall/rules/{position}",
+            options,
             cancellationToken);
 
         _logger.LogInformation("Firewall rule at position {Position} updated successfully on node {NodeName}", position, nodeName);
@@ -302,7 +302,7 @@ public class NetworkService
         _logger.LogDebug("Deleting firewall rule at position {Position} from node {NodeName}", position, nodeName);
 
         await _httpClient.DeleteAsync<object>(
-            $"nodes/{nodeName}/firewall/rules/{position}", 
+            $"nodes/{nodeName}/firewall/rules/{position}",
             cancellationToken);
 
         _logger.LogInformation("Firewall rule at position {Position} deleted successfully from node {NodeName}", position, nodeName);
@@ -325,7 +325,7 @@ public class NetworkService
         _logger.LogDebug("Getting DNS configuration for node {NodeName}", nodeName);
 
         var response = await _httpClient.GetAsync<DnsConfig>(
-            $"nodes/{nodeName}/dns", 
+            $"nodes/{nodeName}/dns",
             cancellationToken);
 
         return response;
@@ -346,8 +346,8 @@ public class NetworkService
         _logger.LogDebug("Updating DNS configuration for node {NodeName}", nodeName);
 
         await _httpClient.PutAsync<object>(
-            $"nodes/{nodeName}/dns", 
-            dnsConfig, 
+            $"nodes/{nodeName}/dns",
+            dnsConfig,
             cancellationToken);
 
         _logger.LogInformation("DNS configuration updated successfully for node {NodeName}", nodeName);
@@ -370,7 +370,7 @@ public class NetworkService
         _logger.LogDebug("Getting host entries for node {NodeName}", nodeName);
 
         var response = await _httpClient.GetAsync<List<HostEntry>>(
-            $"nodes/{nodeName}/hosts", 
+            $"nodes/{nodeName}/hosts",
             cancellationToken);
 
         return response ?? new List<HostEntry>();
@@ -391,8 +391,8 @@ public class NetworkService
         _logger.LogDebug("Updating host entries for node {NodeName}", nodeName);
 
         await _httpClient.PostAsync<object>(
-            $"nodes/{nodeName}/hosts", 
-            hostEntries, 
+            $"nodes/{nodeName}/hosts",
+            hostEntries,
             cancellationToken);
 
         _logger.LogInformation("Host entries updated successfully for node {NodeName}", nodeName);
@@ -570,16 +570,16 @@ public class NetworkService
             case "bridge":
                 // Bridge should have ports defined
                 return !string.IsNullOrWhiteSpace(options.BridgePorts);
-            
+
             case "vlan":
                 // VLAN should have VLAN ID and raw device
-                return options.VlanId.HasValue && options.VlanId > 0 && 
+                return options.VlanId.HasValue && options.VlanId > 0 &&
                        !string.IsNullOrWhiteSpace(options.VlanRawDevice);
-            
+
             case "bond":
                 // Bond should have slaves defined
                 return !string.IsNullOrWhiteSpace(options.BondSlaves);
-            
+
             default:
                 return true;
         }
@@ -594,7 +594,7 @@ public class NetworkService
     public async Task<Dictionary<string, object>> GetNetworkSummaryAsync(string nodeName, CancellationToken cancellationToken = default)
     {
         var interfaces = await GetNetworkInterfacesAsync(nodeName, cancellationToken);
-        
+
         var summary = new Dictionary<string, object>
         {
             ["TotalInterfaces"] = interfaces.Count,

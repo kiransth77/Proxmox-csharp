@@ -16,7 +16,7 @@ public class BasicUsageExample
         // Configure logging
         using var loggerFactory = LoggerFactory.Create(builder =>
             builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-        
+
         var logger = loggerFactory.CreateLogger<ProxmoxClient>();
 
         // Configure connection
@@ -40,35 +40,35 @@ public class BasicUsageExample
         try
         {
             using var client = new ProxmoxClient(connectionInfo, logger);
-            
+
             // Test connection
             Console.WriteLine("Testing connection...");
             var isConnected = await client.TestConnectionAsync();
-            
+
             if (!isConnected)
             {
                 Console.WriteLine("Failed to connect to Proxmox server");
                 return;
             }
-            
+
             Console.WriteLine("Connection successful!");
 
             // Authenticate
             Console.WriteLine("Authenticating...");
             var isAuthenticated = await client.AuthenticateAsync();
-            
+
             if (!isAuthenticated)
             {
                 Console.WriteLine("Authentication failed");
                 return;
             }
-            
+
             Console.WriteLine("Authentication successful!");
 
             // Get version information
             Console.WriteLine("Getting server version...");
             var version = await client.GetVersionAsync();
-            
+
             if (version != null)
             {
                 Console.WriteLine("Proxmox VE Version Information:");

@@ -62,7 +62,7 @@ public class ProxmoxHttpClient : IProxmoxHttpClient
                 var tokenParts = _connectionInfo.ApiToken.Split('=');
                 if (tokenParts.Length == 2)
                 {
-                    _httpClient.DefaultRequestHeaders.Authorization = 
+                    _httpClient.DefaultRequestHeaders.Authorization =
                         new AuthenticationHeaderValue("PVEAPIToken", _connectionInfo.ApiToken);
                     _logger.LogInformation("Using API token authentication");
                     return true;
@@ -76,29 +76,29 @@ public class ProxmoxHttpClient : IProxmoxHttpClient
             {
                 // Username/password authentication
                 authData["password"] = _connectionInfo.Password;
-                
+
                 var authContent = new FormUrlEncodedContent(authData);
                 var response = await _httpClient.PostAsync("/access/ticket", authContent, cancellationToken);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
                     var authResponse = JsonSerializer.Deserialize<ProxmoxApiResponse<AuthTicket>>(responseContent, _jsonOptions);
-                    
+
                     if (authResponse?.IsSuccess == true && authResponse.Data != null)
                     {
                         _authTicket = authResponse.Data.Ticket;
                         _csrfToken = authResponse.Data.CsrfToken;
-                        
+
                         // Set authentication headers
                         _httpClient.DefaultRequestHeaders.Remove("Cookie");
                         _httpClient.DefaultRequestHeaders.Add("Cookie", $"PVEAuthCookie={_authTicket}");
-                        
+
                         _logger.LogInformation("Successfully authenticated with username/password");
                         return true;
                     }
                 }
-                
+
                 throw new ProxmoxAuthenticationException("Authentication failed: Invalid credentials");
             }
             else
@@ -117,21 +117,21 @@ public class ProxmoxHttpClient : IProxmoxHttpClient
             throw new ProxmoxAuthenticationException("Authentication request timed out", ex);
         }
     }    /// <summary>
-    /// Makes a GET request to the Proxmox API
-    /// </summary>
+         /// Makes a GET request to the Proxmox API
+         /// </summary>
     public async Task<T> GetAsync<T>(string endpoint, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Making GET request to {Endpoint}", endpoint);
-        
+
         var response = await _httpClient.GetAsync(endpoint, cancellationToken);
         return await ProcessResponseAsync<T>(response, cancellationToken);
     }    /// <summary>
-    /// Makes a POST request to the Proxmox API
-    /// </summary>
+         /// Makes a POST request to the Proxmox API
+         /// </summary>
     public async Task<T> PostAsync<T>(string endpoint, object? data = null, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Making POST request to {Endpoint}", endpoint);
-        
+
         HttpContent? content = null;
         if (data != null)
         {
@@ -163,7 +163,7 @@ public class ProxmoxHttpClient : IProxmoxHttpClient
     public async Task<T> PutAsync<T>(string endpoint, object? data = null, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Making PUT request to {Endpoint}", endpoint);
-        
+
         HttpContent? content = null;
         if (data != null)
         {
@@ -188,7 +188,7 @@ public class ProxmoxHttpClient : IProxmoxHttpClient
     public async Task<T> DeleteAsync<T>(string endpoint, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Making DELETE request to {Endpoint}", endpoint);
-        
+
         // Add CSRF token for DELETE requests when using ticket authentication
         if (!string.IsNullOrEmpty(_csrfToken))
         {
@@ -205,10 +205,11 @@ public class ProxmoxHttpClient : IProxmoxHttpClient
         _httpClient.BaseAddress = new Uri(_connectionInfo.BaseUrl);
         _httpClient.Timeout = TimeSpan.FromSeconds(_connectionInfo.TimeoutSeconds);
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "ProxmoxApi-Client/1.0");
-    }    private async Task<T> ProcessResponseAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
+    }
+    private async Task<T> ProcessResponseAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("API request failed with status {StatusCode}: {Content}", response.StatusCode, content);
@@ -244,7 +245,7 @@ public class ProxmoxHttpClient : IProxmoxHttpClient
                 var errorMessage = errorValues != null ? string.Join("; ", errorValues) : "Unknown error";
                 throw new ProxmoxApiException($"API returned errors: {errorMessage}");
             }
-            
+
             if (apiResponse == null || apiResponse.Data == null)
             {
                 throw new ProxmoxApiException("API response or data was null.");

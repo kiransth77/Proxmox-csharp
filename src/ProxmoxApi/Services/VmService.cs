@@ -13,7 +13,8 @@ namespace ProxmoxApi.Services;
 /// Service for managing Proxmox Virtual Machines
 /// </summary>
 public class VmService
-{    private readonly IProxmoxHttpClient _httpClient;
+{
+    private readonly IProxmoxHttpClient _httpClient;
     private readonly ILogger<VmService> _logger;
 
     /// <summary>
@@ -24,10 +25,10 @@ public class VmService
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }    /// <summary>
-    /// Gets all VMs in the cluster
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>List of VMs across all nodes</returns>
+         /// Gets all VMs in the cluster
+         /// </summary>
+         /// <param name="cancellationToken">Cancellation token</param>
+         /// <returns>List of VMs across all nodes</returns>
     public async Task<List<ProxmoxVm>> GetVmsAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Fetching all VMs from cluster");
@@ -35,7 +36,7 @@ public class VmService
         try
         {
             var response = await _httpClient.GetAsync<List<ProxmoxVm>>(
-                "cluster/resources?type=vm", 
+                "cluster/resources?type=vm",
                 cancellationToken);
 
             if (response != null)
@@ -65,7 +66,7 @@ public class VmService
         if (string.IsNullOrWhiteSpace(nodeName))
             throw new ArgumentException("Node name is required", nameof(nodeName));
 
-        _logger.LogDebug("Fetching VMs from node {NodeName}", nodeName);        try
+        _logger.LogDebug("Fetching VMs from node {NodeName}", nodeName); try
         {
             var response = await _httpClient.GetAsync<List<ProxmoxVm>>(
                 $"nodes/{nodeName}/qemu",
@@ -73,7 +74,7 @@ public class VmService
 
             if (response != null)
             {
-                _logger.LogInformation("Successfully retrieved {Count} VMs from node {NodeName}", 
+                _logger.LogInformation("Successfully retrieved {Count} VMs from node {NodeName}",
                     response.Count, nodeName);
                 return response;
             }
@@ -103,13 +104,14 @@ public class VmService
         _logger.LogDebug("Fetching status for VM {VmId} on node {NodeName}", vmId, nodeName);
 
         try
-        {            var response = await _httpClient.GetAsync<VmStatus>(
+        {
+            var response = await _httpClient.GetAsync<VmStatus>(
                 $"nodes/{nodeName}/qemu/{vmId}/status/current",
                 cancellationToken);
 
             if (response != null)
             {
-                _logger.LogDebug("Successfully retrieved status for VM {VmId}: {Status}", 
+                _logger.LogDebug("Successfully retrieved status for VM {VmId}: {Status}",
                     vmId, response.Status);
                 return response;
             }
@@ -139,7 +141,8 @@ public class VmService
         _logger.LogDebug("Fetching configuration for VM {VmId} on node {NodeName}", vmId, nodeName);
 
         try
-        {            var response = await _httpClient.GetAsync<Dictionary<string, object>>(
+        {
+            var response = await _httpClient.GetAsync<Dictionary<string, object>>(
                 $"nodes/{nodeName}/qemu/{vmId}/config",
                 cancellationToken);
 
@@ -174,7 +177,8 @@ public class VmService
         _logger.LogDebug("Fetching statistics for VM {VmId} on node {NodeName}", vmId, nodeName);
 
         try
-        {            var response = await _httpClient.GetAsync<VmStatistics>(
+        {
+            var response = await _httpClient.GetAsync<VmStatistics>(
                 $"nodes/{nodeName}/qemu/{vmId}/status/current",
                 cancellationToken);
 
@@ -209,7 +213,8 @@ public class VmService
         _logger.LogInformation("Starting VM {VmId} on node {NodeName}", vmId, nodeName);
 
         try
-        {            var response = await _httpClient.PostAsync<string>(
+        {
+            var response = await _httpClient.PostAsync<string>(
                 $"nodes/{nodeName}/qemu/{vmId}/status/start",
                 new Dictionary<string, object>(),
                 cancellationToken);
@@ -244,7 +249,7 @@ public class VmService
         {
             var parameters = new Dictionary<string, object>();
             if (force)
-                parameters["forceStop"] = "1";            var response = await _httpClient.PostAsync<string>(
+                parameters["forceStop"] = "1"; var response = await _httpClient.PostAsync<string>(
                 $"nodes/{nodeName}/qemu/{vmId}/status/stop",
                 parameters,
                 cancellationToken);
@@ -279,7 +284,7 @@ public class VmService
         {
             var parameters = new Dictionary<string, object>();
             if (force)
-                parameters["forceStop"] = "1";            var response = await _httpClient.PostAsync<string>(
+                parameters["forceStop"] = "1"; var response = await _httpClient.PostAsync<string>(
                 $"nodes/{nodeName}/qemu/{vmId}/status/reboot",
                 parameters,
                 cancellationToken);
@@ -310,7 +315,8 @@ public class VmService
         _logger.LogInformation("Pausing VM {VmId} on node {NodeName}", vmId, nodeName);
 
         try
-        {            var response = await _httpClient.PostAsync<string>(
+        {
+            var response = await _httpClient.PostAsync<string>(
                 $"nodes/{nodeName}/qemu/{vmId}/status/suspend",
                 new Dictionary<string, object>(),
                 cancellationToken);
@@ -341,7 +347,8 @@ public class VmService
         _logger.LogInformation("Resuming VM {VmId} on node {NodeName}", vmId, nodeName);
 
         try
-        {            var response = await _httpClient.PostAsync<string>(
+        {
+            var response = await _httpClient.PostAsync<string>(
                 $"nodes/{nodeName}/qemu/{vmId}/status/resume",
                 new Dictionary<string, object>(),
                 cancellationToken);
@@ -372,13 +379,14 @@ public class VmService
         _logger.LogDebug("Fetching snapshots for VM {VmId} on node {NodeName}", vmId, nodeName);
 
         try
-        {            var response = await _httpClient.GetAsync<List<VmSnapshot>>(
+        {
+            var response = await _httpClient.GetAsync<List<VmSnapshot>>(
                 $"nodes/{nodeName}/qemu/{vmId}/snapshot",
                 cancellationToken);
 
             if (response != null)
             {
-                _logger.LogDebug("Successfully retrieved {Count} snapshots for VM {VmId}", 
+                _logger.LogDebug("Successfully retrieved {Count} snapshots for VM {VmId}",
                     response.Count, vmId);
                 return response;
             }
@@ -410,7 +418,7 @@ public class VmService
         if (string.IsNullOrWhiteSpace(snapshotName))
             throw new ArgumentException("Snapshot name is required", nameof(snapshotName));
 
-        _logger.LogInformation("Creating snapshot '{SnapshotName}' for VM {VmId} on node {NodeName}", 
+        _logger.LogInformation("Creating snapshot '{SnapshotName}' for VM {VmId} on node {NodeName}",
             snapshotName, vmId, nodeName);
 
         try
@@ -424,19 +432,19 @@ public class VmService
                 parameters["description"] = description;
 
             if (includeMemory)
-                parameters["vmstate"] = "1";            var response = await _httpClient.PostAsync<string>(
+                parameters["vmstate"] = "1"; var response = await _httpClient.PostAsync<string>(
                 $"nodes/{nodeName}/qemu/{vmId}/snapshot",
                 parameters,
                 cancellationToken);
 
             var taskId = response ?? "unknown";
-            _logger.LogInformation("Created snapshot '{SnapshotName}' for VM {VmId}, task ID: {TaskId}", 
+            _logger.LogInformation("Created snapshot '{SnapshotName}' for VM {VmId}, task ID: {TaskId}",
                 snapshotName, vmId, taskId);
             return taskId;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create snapshot '{SnapshotName}' for VM {VmId} on node {NodeName}", 
+            _logger.LogError(ex, "Failed to create snapshot '{SnapshotName}' for VM {VmId} on node {NodeName}",
                 snapshotName, vmId, nodeName);
             throw;
         }
@@ -458,25 +466,25 @@ public class VmService
         if (string.IsNullOrWhiteSpace(snapshotName))
             throw new ArgumentException("Snapshot name is required", nameof(snapshotName));
 
-        _logger.LogInformation("Deleting snapshot '{SnapshotName}' for VM {VmId} on node {NodeName}", 
+        _logger.LogInformation("Deleting snapshot '{SnapshotName}' for VM {VmId} on node {NodeName}",
             snapshotName, vmId, nodeName);
 
         try
         {
             var parameters = new Dictionary<string, object>();
             if (force)
-                parameters["force"] = "1";            var response = await _httpClient.DeleteAsync<string>(
+                parameters["force"] = "1"; var response = await _httpClient.DeleteAsync<string>(
                 $"nodes/{nodeName}/qemu/{vmId}/snapshot/{snapshotName}",
                 cancellationToken);
 
             var taskId = response ?? "unknown";
-            _logger.LogInformation("Deleted snapshot '{SnapshotName}' for VM {VmId}, task ID: {TaskId}", 
+            _logger.LogInformation("Deleted snapshot '{SnapshotName}' for VM {VmId}, task ID: {TaskId}",
                 snapshotName, vmId, taskId);
             return taskId;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete snapshot '{SnapshotName}' for VM {VmId} on node {NodeName}", 
+            _logger.LogError(ex, "Failed to delete snapshot '{SnapshotName}' for VM {VmId} on node {NodeName}",
                 snapshotName, vmId, nodeName);
             throw;
         }
@@ -514,7 +522,7 @@ public class VmService
                 parameters["description"] = description;
 
             if (fullClone)
-                parameters["full"] = "1";            var response = await _httpClient.PostAsync<string>(
+                parameters["full"] = "1"; var response = await _httpClient.PostAsync<string>(
                 $"nodes/{nodeName}/qemu/{vmId}/clone",
                 parameters,
                 cancellationToken);

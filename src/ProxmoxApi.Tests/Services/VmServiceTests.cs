@@ -47,7 +47,7 @@ public class VmServiceTests : IDisposable
         Assert.Equal(100, result[0].VmId);
         Assert.Equal("test-vm-1", result[0].Name);
         Assert.Equal("running", result[0].Status);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<List<ProxmoxVm>>("cluster/resources?type=vm", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -72,7 +72,7 @@ public class VmServiceTests : IDisposable
         Assert.Single(result);
         Assert.Equal(100, result[0].VmId);
         Assert.Equal("node1", result[0].Node);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<List<ProxmoxVm>>("nodes/node1/qemu", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -105,7 +105,7 @@ public class VmServiceTests : IDisposable
         Assert.Equal(2147483648, result.MemoryUsage);
         Assert.Equal(3600, result.Uptime);
         Assert.Equal(12345, result.ProcessId);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<VmStatus>("nodes/node1/qemu/100/status/current", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -134,7 +134,7 @@ public class VmServiceTests : IDisposable
         Assert.Equal(4096, result["memory"]);
         Assert.Equal(2, result["cores"]);
         Assert.Equal(1, result["sockets"]);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<Dictionary<string, object>>("nodes/node1/qemu/100/config", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -168,7 +168,7 @@ public class VmServiceTests : IDisposable
         Assert.Equal(4294967296, result.MaxMemory);
         Assert.Equal(2048000, result.DiskRead);
         Assert.Equal(4096000, result.NetworkIn);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<VmStatistics>("nodes/node1/qemu/100/status/current", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -177,7 +177,7 @@ public class VmServiceTests : IDisposable
     {
         // Arrange
         const string expectedTaskId = "UPID:node1:00001234:00000123:5F123456:qmstart:100:user@pam:";
-        
+
         _mockHttpClient
             .Setup(x => x.PostAsync<string>(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedTaskId);
@@ -187,7 +187,7 @@ public class VmServiceTests : IDisposable
 
         // Assert
         Assert.Equal(expectedTaskId, result);
-        
+
         _mockHttpClient.Verify(x => x.PostAsync<string>("nodes/node1/qemu/100/status/start", It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -196,7 +196,7 @@ public class VmServiceTests : IDisposable
     {
         // Arrange
         const string expectedTaskId = "UPID:node1:00001234:00000123:5F123456:qmstop:100:user@pam:";
-        
+
         _mockHttpClient
             .Setup(x => x.PostAsync<string>(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedTaskId);
@@ -206,7 +206,7 @@ public class VmServiceTests : IDisposable
 
         // Assert
         Assert.Equal(expectedTaskId, result);
-        
+
         _mockHttpClient.Verify(x => x.PostAsync<string>("nodes/node1/qemu/100/status/stop", It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -232,7 +232,7 @@ public class VmServiceTests : IDisposable
         Assert.Equal(2, result.Count);
         Assert.Equal("snapshot1", result[0].Name);
         Assert.Equal("Test snapshot 1", result[0].Description);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<List<VmSnapshot>>("nodes/node1/qemu/100/snapshot", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -243,15 +243,16 @@ public class VmServiceTests : IDisposable
     public async Task Methods_WithInvalidNodeName_ThrowArgumentException(string invalidNodeName)
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _vmService.GetVmsOnNodeAsync(invalidNodeName));
-            
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _vmService.GetVmStatusAsync(invalidNodeName, 100));
-            
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _vmService.GetVmConfigAsync(invalidNodeName, 100));
-    }    [Fact]
+    }
+    [Fact]
     public void VmService_ShouldNotValidateVmIds()
     {
         // The VmService doesn't perform client-side VM ID validation

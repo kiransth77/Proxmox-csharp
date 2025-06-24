@@ -64,29 +64,29 @@ public static class NetworkManagementExample
             Console.WriteLine($"     Address: {networkInterface.Address ?? "None"}");
             Console.WriteLine($"     Active: {(networkInterface.IsActive ? "✅" : "❌")}");
             Console.WriteLine($"     Autostart: {(networkInterface.IsAutostart ? "✅" : "❌")}");
-            
+
             if (!string.IsNullOrEmpty(networkInterface.BridgePorts))
             {
                 Console.WriteLine($"     Bridge Ports: {networkInterface.BridgePorts}");
             }
-            
+
             if (networkInterface.VlanId.HasValue)
             {
                 Console.WriteLine($"     VLAN ID: {networkInterface.VlanId}");
                 Console.WriteLine($"     VLAN Device: {networkInterface.VlanRawDevice}");
             }
-            
+
             if (!string.IsNullOrEmpty(networkInterface.BondSlaves))
             {
                 Console.WriteLine($"     Bond Slaves: {networkInterface.BondSlaves}");
                 Console.WriteLine($"     Bond Mode: {networkInterface.BondMode}");
             }
-            
+
             if (networkInterface.Mtu.HasValue)
             {
                 Console.WriteLine($"     MTU: {networkInterface.Mtu}");
             }
-            
+
             Console.WriteLine();
         }
 
@@ -95,7 +95,7 @@ public static class NetworkManagementExample
         {
             var firstInterface = interfaces[0];
             Console.WriteLine($"📋 Detailed configuration for '{firstInterface.InterfaceName}':");
-            
+
             var interfaceDetails = await client.Network.GetNetworkInterfaceAsync(nodeName, firstInterface.InterfaceName);
             if (interfaceDetails != null)
             {
@@ -105,7 +105,7 @@ public static class NetworkManagementExample
                 Console.WriteLine($"  Netmask: {interfaceDetails.Netmask ?? "None"}");
                 Console.WriteLine($"  Gateway: {interfaceDetails.Gateway ?? "None"}");
                 Console.WriteLine($"  Priority: {interfaceDetails.Priority?.ToString() ?? "Default"}");
-                
+
                 if (interfaceDetails.Options.Count > 0)
                 {
                     Console.WriteLine("  Advanced Options:");
@@ -131,12 +131,12 @@ public static class NetworkManagementExample
         // Get network summary
         var summary = await client.Network.GetNetworkSummaryAsync(nodeName);
         Console.WriteLine($"Network Summary for node '{nodeName}':");
-        
+
         foreach (var item in summary)
         {
             Console.WriteLine($"  {item.Key}: {item.Value}");
         }
-        
+
         Console.WriteLine();
 
         // Get network status
@@ -148,7 +148,7 @@ public static class NetworkManagementExample
             Console.WriteLine($"  Version: {status.Version}");
             Console.WriteLine($"  Uptime: {TimeSpan.FromSeconds(status.Uptime):dd\\:hh\\:mm\\:ss}");
             Console.WriteLine($"  Interfaces: {status.Interfaces.Count}");
-            
+
             foreach (var interfaceStatus in status.Interfaces.Take(5))
             {
                 Console.WriteLine($"    🔌 {interfaceStatus.InterfaceName}:");
@@ -159,7 +159,7 @@ public static class NetworkManagementExample
                 Console.WriteLine($"       Exists: {(interfaceStatus.Exists ? "Yes" : "No")}");
                 Console.WriteLine($"       Autostart: {(interfaceStatus.Autostart ? "Yes" : "No")}");
             }
-            
+
             if (status.Interfaces.Count > 5)
             {
                 Console.WriteLine($"    ... and {status.Interfaces.Count - 5} more interfaces");
@@ -272,7 +272,7 @@ public static class NetworkManagementExample
             Console.WriteLine($"     Method: {vlanConfig.Method}");
             Console.WriteLine($"     Address: {vlanConfig.Address ?? "DHCP"}");
             Console.WriteLine($"     Comments: {vlanConfig.Comments}");
-            
+
             var vlanOptions = new NetworkInterfaceCreateOptions
             {
                 InterfaceName = vlanConfig.Name,
@@ -350,7 +350,7 @@ public static class NetworkManagementExample
             Console.WriteLine($"     Method: {bondConfig.Method}");
             Console.WriteLine($"     Address: {bondConfig.Address ?? "DHCP"}");
             Console.WriteLine($"     Comments: {bondConfig.Comments}");
-            
+
             var bondOptions = new NetworkInterfaceCreateOptions
             {
                 InterfaceName = bondConfig.Name,

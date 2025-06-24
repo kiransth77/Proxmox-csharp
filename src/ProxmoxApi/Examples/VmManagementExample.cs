@@ -27,7 +27,7 @@ public static class VmManagementExample
             var allVms = await client.Vms.GetVmsAsync();
             foreach (var vm in allVms)
             {
-                logger.LogInformation("  VM {VmId}: {Name} on {Node} - Status: {Status}", 
+                logger.LogInformation("  VM {VmId}: {Name} on {Node} - Status: {Status}",
                     vm.VmId, vm.Name, vm.Node, vm.Status);
             }
 
@@ -43,7 +43,7 @@ public static class VmManagementExample
             var nodeVms = await client.Vms.GetVmsOnNodeAsync(firstVm.Node);
             foreach (var vm in nodeVms)
             {
-                logger.LogInformation("  VM {VmId}: {Name} - Status: {Status}", 
+                logger.LogInformation("  VM {VmId}: {Name} - Status: {Status}",
                     vm.VmId, vm.Name, vm.Status);
             }
 
@@ -64,11 +64,11 @@ public static class VmManagementExample
 
             // Get VM status
             logger.LogInformation("Getting VM status...");
-            var vmStatus = await client.Vms.GetVmStatusAsync(vm.Node, vm.VmId);            if (vmStatus != null)
+            var vmStatus = await client.Vms.GetVmStatusAsync(vm.Node, vm.VmId); if (vmStatus != null)
             {
                 logger.LogInformation("  Status: {Status}", vmStatus.Status);
                 logger.LogInformation("  CPU Usage: {CpuUsage:P2}", vmStatus.CpuUsage ?? 0);
-                logger.LogInformation("  Memory: {MemoryUsage}/{MaxMemory} MB", 
+                logger.LogInformation("  Memory: {MemoryUsage}/{MaxMemory} MB",
                     vmStatus.MemoryUsage / (1024 * 1024), vmStatus.MaxMemory / (1024 * 1024));
                 logger.LogInformation("  Uptime: {Uptime}s", vmStatus.Uptime);
             }
@@ -79,7 +79,7 @@ public static class VmManagementExample
             if (vmConfig != null)
             {
                 logger.LogInformation("  Configuration keys: {Keys}", string.Join(", ", vmConfig.Keys));
-                
+
                 // Show some common configuration items
                 if (vmConfig.TryGetValue("memory", out var memory))
                     logger.LogInformation("  Configured Memory: {Memory}", memory);
@@ -164,24 +164,24 @@ public static class VmManagementExample
             logger.LogInformation("Getting existing snapshots...");
             var snapshots = await client.Vms.GetVmSnapshotsAsync(vm.Node, vm.VmId);
             logger.LogInformation("  Found {Count} snapshots", snapshots.Count);
-            
+
             foreach (var snapshot in snapshots)
             {
-                logger.LogInformation("  Snapshot: {Name} - {Description} (Created: {Created})", 
+                logger.LogInformation("  Snapshot: {Name} - {Description} (Created: {Created})",
                     snapshot.Name, snapshot.Description, snapshot.Created);
             }
 
             // Create a test snapshot
             var snapshotName = $"api-test-{DateTime.Now:yyyyMMdd-HHmmss}";
             logger.LogInformation("Creating test snapshot '{SnapshotName}'...", snapshotName);
-            
+
             var createTaskId = await client.Vms.CreateVmSnapshotAsync(
-                vm.Node, 
-                vm.VmId, 
-                snapshotName, 
+                vm.Node,
+                vm.VmId,
+                snapshotName,
                 "Test snapshot created via ProxmoxApi library",
                 includeMemory: false);
-            
+
             logger.LogInformation("  Snapshot creation task initiated: {TaskId}", createTaskId);
 
             logger.LogInformation("Snapshot operations demonstrated. You can:");

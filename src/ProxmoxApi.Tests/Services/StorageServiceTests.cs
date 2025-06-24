@@ -126,14 +126,14 @@ public class StorageServiceTests : IDisposable
         await _storageService.CreateStorageAsync(options);
 
         // Assert
-        _mockHttpClient.Verify(x => x.PostAsync<object>("storage", 
-            It.Is<Dictionary<string, object>>(d => 
+        _mockHttpClient.Verify(x => x.PostAsync<object>("storage",
+            It.Is<Dictionary<string, object>>(d =>
                 d["storage"].ToString() == "test-storage" &&
                 d["type"].ToString() == "dir" &&
                 d["path"].ToString() == "/mnt/test" &&
                 d["content"].ToString() == "images,iso" &&
                 d["shared"].Equals(1) &&
-                d["maxfiles"].Equals(10)), 
+                d["maxfiles"].Equals(10)),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -142,9 +142,9 @@ public class StorageServiceTests : IDisposable
     {
         // Arrange & Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(() => _storageService.CreateStorageAsync(null!));
-        
+
         await Assert.ThrowsAsync<ArgumentException>(() => _storageService.CreateStorageAsync(new StorageCreateOptions()));
-        
+
         await Assert.ThrowsAsync<ArgumentException>(() => _storageService.CreateStorageAsync(new StorageCreateOptions { Storage = "test" }));
     }
 
@@ -169,10 +169,10 @@ public class StorageServiceTests : IDisposable
         await _storageService.UpdateStorageAsync(storageId, options);
 
         // Assert
-        _mockHttpClient.Verify(x => x.PutAsync<object>($"storage/{storageId}", 
-            It.Is<Dictionary<string, object>>(d => 
+        _mockHttpClient.Verify(x => x.PutAsync<object>($"storage/{storageId}",
+            It.Is<Dictionary<string, object>>(d =>
                 d["content"].ToString() == "images,iso,backup" &&
-                d["path"].ToString() == "/mnt/test-updated"), 
+                d["path"].ToString() == "/mnt/test-updated"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -311,13 +311,13 @@ public class StorageServiceTests : IDisposable
         await _storageService.CreateVolumeAsync(nodeName, storageId, options);
 
         // Assert
-        _mockHttpClient.Verify(x => x.PostAsync<object>($"nodes/{nodeName}/storage/{storageId}/content", 
-            It.Is<Dictionary<string, object>>(d => 
+        _mockHttpClient.Verify(x => x.PostAsync<object>($"nodes/{nodeName}/storage/{storageId}/content",
+            It.Is<Dictionary<string, object>>(d =>
                 d["filename"].ToString() == "vm-100-disk-0" &&
                 d["size"].ToString() == "32G" &&
                 d["format"].ToString() == "raw" &&
                 d["vmid"].Equals(100) &&
-                d["notes"].ToString() == "Test disk"), 
+                d["notes"].ToString() == "Test disk"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -349,7 +349,7 @@ public class StorageServiceTests : IDisposable
         var targetStorage = "backup-storage";
         var expectedTaskId = "UPID:pve:00001234:00000000:5F123456:vdisk:local-lvm:copy:root@pam:";
 
-        _mockHttpClient.Setup(x => x.PostAsync<string>($"nodes/{nodeName}/storage/{storageId}/content/{Uri.EscapeDataString(volumeId)}/copy", 
+        _mockHttpClient.Setup(x => x.PostAsync<string>($"nodes/{nodeName}/storage/{storageId}/content/{Uri.EscapeDataString(volumeId)}/copy",
                 It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
                       .ReturnsAsync(expectedTaskId);
 
@@ -359,8 +359,8 @@ public class StorageServiceTests : IDisposable
         // Assert
         Assert.Equal(expectedTaskId, result);
 
-        _mockHttpClient.Verify(x => x.PostAsync<string>($"nodes/{nodeName}/storage/{storageId}/content/{Uri.EscapeDataString(volumeId)}/copy", 
-            It.Is<Dictionary<string, object>>(d => d["target"].ToString() == targetStorage), 
+        _mockHttpClient.Verify(x => x.PostAsync<string>($"nodes/{nodeName}/storage/{storageId}/content/{Uri.EscapeDataString(volumeId)}/copy",
+            It.Is<Dictionary<string, object>>(d => d["target"].ToString() == targetStorage),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -439,7 +439,7 @@ public class StorageServiceTests : IDisposable
         {
             await Assert.ThrowsAsync<ArgumentException>(() => _storageService.GetStorageStatusAsync(nodeName));
         }
-        
+
         if (string.IsNullOrEmpty(storageId) && !string.IsNullOrEmpty(nodeName))
         {
             await Assert.ThrowsAsync<ArgumentException>(() => _storageService.GetStorageContentAsync(nodeName, storageId));

@@ -59,12 +59,12 @@ public static class StorageManagementExample
             Console.WriteLine($"     Content: {storage.Content}");
             Console.WriteLine($"     Enabled: {storage.Enabled}");
             Console.WriteLine($"     Shared: {storage.Shared}");
-            
+
             if (!string.IsNullOrEmpty(storage.Nodes))
             {
                 Console.WriteLine($"     Nodes: {storage.Nodes}");
             }
-            
+
             Console.WriteLine();
         }
 
@@ -73,7 +73,7 @@ public static class StorageManagementExample
         {
             var firstStorage = storages[0];
             Console.WriteLine($"📋 Detailed configuration for '{firstStorage.Storage}':");
-            
+
             var storageDetails = await client.Storage.GetStorageAsync(firstStorage.Storage);
             if (storageDetails != null)
             {
@@ -81,7 +81,7 @@ public static class StorageManagementExample
                 Console.WriteLine($"  Path: {storageDetails.Path}");
                 Console.WriteLine($"  Content Types: {storageDetails.Content}");
                 Console.WriteLine($"  Max Files: {storageDetails.MaxFiles?.ToString() ?? "Unlimited"}");
-                
+
                 if (storageDetails.Options.Count > 0)
                 {
                     Console.WriteLine("  Options:");
@@ -112,22 +112,22 @@ public static class StorageManagementExample
         {
             Console.WriteLine($"  💽 {status.Storage} ({status.Type})");
             Console.WriteLine($"     Status: {(status.Active ? "✅ Active" : "❌ Inactive")}");
-            
+
             if (status.Total > 0)
             {
                 var totalGB = Math.Round(status.Total / (1024.0 * 1024 * 1024), 2);
                 var usedGB = Math.Round(status.Used / (1024.0 * 1024 * 1024), 2);
                 var availGB = Math.Round(status.Available / (1024.0 * 1024 * 1024), 2);
-                
+
                 Console.WriteLine($"     Total: {totalGB:F2} GB");
                 Console.WriteLine($"     Used: {usedGB:F2} GB ({status.UsagePercentage:F1}%)");
                 Console.WriteLine($"     Available: {availGB:F2} GB");
-                
+
                 // Show usage bar
                 var usageBar = CreateUsageBar(status.UsagePercentage);
                 Console.WriteLine($"     Usage: {usageBar}");
             }
-            
+
             Console.WriteLine($"     Content: {status.Content}");
             Console.WriteLine();
         }
@@ -143,7 +143,7 @@ public static class StorageManagementExample
 
         var storages = await client.Storage.GetStoragesAsync();
         var dataStorage = storages.Find(s => s.Content.Contains("images")) ?? storages.FirstOrDefault();
-        
+
         if (dataStorage == null)
         {
             Console.WriteLine("No suitable storage found for content demonstration.");
@@ -158,11 +158,11 @@ public static class StorageManagementExample
 
         // Group by content type
         var contentByType = allContent.GroupBy(c => c.Content).ToDictionary(g => g.Key, g => g.ToList());
-        
+
         foreach (var contentType in contentByType)
         {
             Console.WriteLine($"  📂 {contentType.Key}: {contentType.Value.Count} items");
-            
+
             // Show first few items of each type
             var itemsToShow = contentType.Value.Take(3);
             foreach (var item in itemsToShow)
@@ -171,7 +171,7 @@ public static class StorageManagementExample
                 var vmText = item.VmId.HasValue ? $" [VM {item.VmId}]" : "";
                 Console.WriteLine($"    - {item.VolumeId.Split('/').LastOrDefault()}{sizeText}{vmText}");
             }
-            
+
             if (contentType.Value.Count > 3)
             {
                 Console.WriteLine($"    ... and {contentType.Value.Count - 3} more");
@@ -191,7 +191,7 @@ public static class StorageManagementExample
 
         var storages = await client.Storage.GetStoragesAsync();
         var backupStorage = storages.Find(s => s.Content.Contains("backup")) ?? storages.FirstOrDefault();
-        
+
         if (backupStorage == null)
         {
             Console.WriteLine("No backup storage found.");
@@ -212,12 +212,12 @@ public static class StorageManagementExample
             Console.WriteLine($"     Size: {FormatBytes(backup.Size)}");
             Console.WriteLine($"     Format: {backup.Format}");
             Console.WriteLine($"     Protected: {(backup.Protected ? "Yes" : "No")}");
-            
+
             if (!string.IsNullOrEmpty(backup.Notes))
             {
                 Console.WriteLine($"     Notes: {backup.Notes}");
             }
-            
+
             Console.WriteLine();
         }
 
@@ -248,30 +248,30 @@ public static class StorageManagementExample
         Console.WriteLine("==============================");
 
         var storages = await client.Storage.GetStoragesAsync();
-        
+
         // Find ISO storage
         var isoStorage = storages.Find(s => s.Content.Contains("iso"));
         if (isoStorage != null)
         {
             Console.WriteLine($"ISO images in storage '{isoStorage.Storage}':");
-            
+
             var isoImages = await client.Storage.GetIsoImagesAsync(nodeName, isoStorage.Storage);
             Console.WriteLine($"  Found {isoImages.Count} ISO images:");
-            
+
             foreach (var iso in isoImages.Take(5))
             {
                 var filename = iso.VolumeId.Split('/').LastOrDefault() ?? iso.VolumeId;
                 Console.WriteLine($"  💿 {filename}");
                 Console.WriteLine($"     Size: {FormatBytes(iso.Size)}");
-                
+
                 if (iso.CreatedAt.HasValue)
                 {
                     Console.WriteLine($"     Created: {iso.CreatedAt:yyyy-MM-dd HH:mm}");
                 }
-                
+
                 Console.WriteLine();
             }
-            
+
             if (isoImages.Count > 5)
             {
                 Console.WriteLine($"  ... and {isoImages.Count - 5} more ISO images");
@@ -283,24 +283,24 @@ public static class StorageManagementExample
         if (templateStorage != null)
         {
             Console.WriteLine($"Container templates in storage '{templateStorage.Storage}':");
-            
+
             var templates = await client.Storage.GetContainerTemplatesAsync(nodeName, templateStorage.Storage);
             Console.WriteLine($"  Found {templates.Count} container templates:");
-            
+
             foreach (var template in templates.Take(5))
             {
                 var filename = template.VolumeId.Split('/').LastOrDefault() ?? template.VolumeId;
                 Console.WriteLine($"  📦 {filename}");
                 Console.WriteLine($"     Size: {FormatBytes(template.Size)}");
-                
+
                 if (template.CreatedAt.HasValue)
                 {
                     Console.WriteLine($"     Created: {template.CreatedAt:yyyy-MM-dd HH:mm}");
                 }
-                
+
                 Console.WriteLine();
             }
-            
+
             if (templates.Count > 5)
             {
                 Console.WriteLine($"  ... and {templates.Count - 5} more templates");
@@ -361,7 +361,7 @@ public static class StorageManagementExample
     {
         var filled = (int)Math.Round(percentage / 100.0 * width);
         var empty = width - filled;
-        
+
         var bar = new string('█', filled) + new string('░', empty);
         return $"[{bar}] {percentage:F1}%";
     }
@@ -374,13 +374,13 @@ public static class StorageManagementExample
         string[] suffixes = { "B", "KB", "MB", "GB", "TB", "PB" };
         int counter = 0;
         decimal number = bytes;
-        
+
         while (Math.Round(number / 1024) >= 1)
         {
             number /= 1024;
             counter++;
         }
-        
+
         return $"{number:F2} {suffixes[counter]}";
     }
 }

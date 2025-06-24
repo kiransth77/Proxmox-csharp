@@ -40,7 +40,7 @@ public class ContainerService
         try
         {
             var response = await _httpClient.GetAsync<List<ProxmoxContainer>>(
-                "cluster/resources?type=lxc", 
+                "cluster/resources?type=lxc",
                 cancellationToken);
 
             if (response != null)
@@ -73,7 +73,7 @@ public class ContainerService
         try
         {
             var response = await _httpClient.GetAsync<List<ProxmoxContainer>>(
-                $"nodes/{nodeName}/lxc", 
+                $"nodes/{nodeName}/lxc",
                 cancellationToken);
 
             if (response != null)
@@ -108,7 +108,7 @@ public class ContainerService
         {
             var containers = await GetContainersAsync(nodeName, cancellationToken);
             var container = containers.FirstOrDefault(c => c.ContainerId == containerId);
-            
+
             if (container != null)
             {
                 _logger.LogInformation("Found container {ContainerId} on node {NodeName}", containerId, nodeName);
@@ -142,7 +142,7 @@ public class ContainerService
         try
         {
             var response = await _httpClient.GetAsync<ContainerStatus>(
-                $"nodes/{nodeName}/lxc/{containerId}/status/current", 
+                $"nodes/{nodeName}/lxc/{containerId}/status/current",
                 cancellationToken);
 
             if (response != null)
@@ -176,7 +176,7 @@ public class ContainerService
         try
         {
             var response = await _httpClient.GetAsync<ContainerConfig>(
-                $"nodes/{nodeName}/lxc/{containerId}/config", 
+                $"nodes/{nodeName}/lxc/{containerId}/config",
                 cancellationToken);
 
             if (response != null)
@@ -210,7 +210,7 @@ public class ContainerService
         try
         {
             var response = await _httpClient.GetAsync<ContainerStatistics>(
-                $"nodes/{nodeName}/lxc/{containerId}/status/current", 
+                $"nodes/{nodeName}/lxc/{containerId}/status/current",
                 cancellationToken);
 
             if (response != null)
@@ -244,8 +244,8 @@ public class ContainerService
         try
         {
             var response = await _httpClient.PostAsync<string>(
-                $"nodes/{nodeName}/lxc/{containerId}/status/start", 
-                null, 
+                $"nodes/{nodeName}/lxc/{containerId}/status/start",
+                null,
                 cancellationToken);
 
             if (!string.IsNullOrEmpty(response))
@@ -283,8 +283,8 @@ public class ContainerService
                 data["forceStop"] = 1;
 
             var response = await _httpClient.PostAsync<string>(
-                $"nodes/{nodeName}/lxc/{containerId}/status/stop", 
-                data, 
+                $"nodes/{nodeName}/lxc/{containerId}/status/stop",
+                data,
                 cancellationToken);
 
             if (!string.IsNullOrEmpty(response))
@@ -317,8 +317,8 @@ public class ContainerService
         try
         {
             var response = await _httpClient.PostAsync<string>(
-                $"nodes/{nodeName}/lxc/{containerId}/status/restart", 
-                null, 
+                $"nodes/{nodeName}/lxc/{containerId}/status/restart",
+                null,
                 cancellationToken);
 
             if (!string.IsNullOrEmpty(response))
@@ -387,7 +387,7 @@ public class ContainerService
         try
         {
             var response = await _httpClient.GetAsync<List<ContainerSnapshot>>(
-                $"nodes/{nodeName}/lxc/{containerId}/snapshot", 
+                $"nodes/{nodeName}/lxc/{containerId}/snapshot",
                 cancellationToken);
 
             if (response != null)
@@ -432,8 +432,8 @@ public class ContainerService
                 data["description"] = description;
 
             var response = await _httpClient.PostAsync<string>(
-                $"nodes/{nodeName}/lxc/{containerId}/snapshot", 
-                data, 
+                $"nodes/{nodeName}/lxc/{containerId}/snapshot",
+                data,
                 cancellationToken);
 
             if (!string.IsNullOrEmpty(response))

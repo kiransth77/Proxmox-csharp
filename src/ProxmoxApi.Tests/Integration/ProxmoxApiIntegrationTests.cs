@@ -21,8 +21,8 @@ public class ProxmoxApiIntegrationTests : IDisposable
         var username = Environment.GetEnvironmentVariable("PROXMOX_TEST_USER");
         var password = Environment.GetEnvironmentVariable("PROXMOX_TEST_PASS");
 
-        _canRunIntegrationTests = !string.IsNullOrEmpty(host) && 
-                                 !string.IsNullOrEmpty(username) && 
+        _canRunIntegrationTests = !string.IsNullOrEmpty(host) &&
+                                 !string.IsNullOrEmpty(username) &&
                                  !string.IsNullOrEmpty(password);
 
         if (_canRunIntegrationTests)
@@ -76,7 +76,7 @@ public class ProxmoxApiIntegrationTests : IDisposable
         // Assert
         Assert.NotNull(nodes);
         Assert.NotEmpty(nodes);
-        Assert.All(nodes, node => 
+        Assert.All(nodes, node =>
         {
             Assert.NotNull(node.Node);
             Assert.NotEmpty(node.Node);
@@ -95,7 +95,7 @@ public class ProxmoxApiIntegrationTests : IDisposable
         // Arrange
         await _proxmoxClient.AuthenticateAsync();
         var nodes = await _proxmoxClient.Nodes.GetNodesAsync();
-        
+
         if (!nodes.Any())
         {
             return; // Skip if no nodes available
@@ -121,7 +121,7 @@ public class ProxmoxApiIntegrationTests : IDisposable
         // Arrange
         await _proxmoxClient.AuthenticateAsync();
         var nodes = await _proxmoxClient.Nodes.GetNodesAsync();
-        
+
         if (!nodes.Any())
         {
             return; // Skip if no nodes available
@@ -134,7 +134,8 @@ public class ProxmoxApiIntegrationTests : IDisposable
         Assert.NotNull(status);
         Assert.True(status.Time > 0);
         Assert.True(status.Uptime >= 0);
-    }    [Fact]
+    }
+    [Fact]
     public async Task VmLifecycle_ShouldWork_WithExistingRunningVm()
     {
         // Skip if integration test environment is not set up
@@ -146,7 +147,7 @@ public class ProxmoxApiIntegrationTests : IDisposable
         // Arrange
         await _proxmoxClient.AuthenticateAsync();
         var nodes = await _proxmoxClient.Nodes.GetNodesAsync();
-        
+
         if (!nodes.Any())
         {
             return; // Skip if no nodes available
@@ -182,7 +183,7 @@ public class ProxmoxApiIntegrationTests : IDisposable
         // Arrange
         await _proxmoxClient.AuthenticateAsync();
         var nodes = await _proxmoxClient.Nodes.GetNodesAsync();
-        
+
         if (!nodes.Any())
         {
             return; // Skip if no nodes available
@@ -210,7 +211,7 @@ public class ProxmoxApiIntegrationTests : IDisposable
         // Arrange
         await _proxmoxClient.AuthenticateAsync();
         var nodes = await _proxmoxClient.Nodes.GetNodesAsync();
-        
+
         if (!nodes.Any())
         {
             return; // Skip if no nodes available
@@ -246,7 +247,7 @@ public class ProxmoxApiIntegrationTests : IDisposable
         // Arrange
         await _proxmoxClient.AuthenticateAsync();
         var nodes = await _proxmoxClient.Nodes.GetNodesAsync();
-        
+
         if (!nodes.Any())
         {
             return; // Skip if no nodes available
@@ -280,7 +281,7 @@ public class ProxmoxApiIntegrationTests : IDisposable
         // Arrange
         await _proxmoxClient.AuthenticateAsync();
         var nodes = await _proxmoxClient.Nodes.GetNodesAsync();
-        
+
         if (!nodes.Any())
         {
             return; // Skip if no nodes available
@@ -317,7 +318,7 @@ public class ProxmoxApiIntegrationTests : IDisposable
         // Arrange
         await _proxmoxClient.AuthenticateAsync();
         var nodes = await _proxmoxClient.Nodes.GetNodesAsync();
-        
+
         if (!nodes.Any())
         {
             return; // Skip if no nodes available

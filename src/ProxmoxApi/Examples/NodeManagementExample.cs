@@ -18,7 +18,7 @@ public class NodeManagementExample
         // Configure logging
         using var loggerFactory = LoggerFactory.Create(builder =>
             builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-        
+
         var logger = loggerFactory.CreateLogger<ProxmoxClient>();
 
         // Configure connection
@@ -33,7 +33,7 @@ public class NodeManagementExample
         try
         {
             using var client = new ProxmoxClient(connectionInfo, logger);
-            
+
             // Authenticate
             Console.WriteLine("🔐 Authenticating...");
             if (!await client.AuthenticateAsync())
@@ -46,18 +46,18 @@ public class NodeManagementExample
             // Get all nodes in the cluster
             Console.WriteLine("\n📋 Getting cluster nodes...");
             var nodes = await client.Nodes.GetNodesAsync();
-            
+
             Console.WriteLine($"Found {nodes.Count} nodes:");
             foreach (var node in nodes)
             {
                 var status = node.IsOnline ? "🟢 Online" : "🔴 Offline";
                 var cpuPercent = node.CpuUsage.HasValue ? $"{node.CpuUsage * 100:F1}%" : "N/A";
                 var memPercent = node.MemoryUsagePercentage.HasValue ? $"{node.MemoryUsagePercentage * 100:F1}%" : "N/A";
-                
+
                 Console.WriteLine($"  {status} {node.Node}");
                 Console.WriteLine($"    CPU: {cpuPercent}, Memory: {memPercent}");
                 Console.WriteLine($"    Type: {node.Type}, Level: {node.Level}");
-                
+
                 if (node.UptimeSpan.HasValue)
                 {
                     Console.WriteLine($"    Uptime: {node.UptimeSpan.Value.Days}d {node.UptimeSpan.Value.Hours}h {node.UptimeSpan.Value.Minutes}m");
@@ -71,12 +71,12 @@ public class NodeManagementExample
             {
                 Console.WriteLine($"📊 Getting detailed status for node '{onlineNode.Node}'...");
                 var nodeStatus = await client.Nodes.GetNodeStatusAsync(onlineNode.Node);
-                
+
                 Console.WriteLine($"Node Status Details for {onlineNode.Node}:");
                 Console.WriteLine($"  Current Time: {nodeStatus.CurrentTime}");
                 Console.WriteLine($"  Uptime: {nodeStatus.UptimeSpan.Days}d {nodeStatus.UptimeSpan.Hours}h {nodeStatus.UptimeSpan.Minutes}m");
                 Console.WriteLine($"  PVE Version: {nodeStatus.PveVersion}");
-                
+
                 if (nodeStatus.LoadAverage != null && nodeStatus.LoadAverage.Length >= 3)
                 {
                     Console.WriteLine($"  Load Average: {nodeStatus.LoadAverage[0]:F2}, {nodeStatus.LoadAverage[1]:F2}, {nodeStatus.LoadAverage[2]:F2}");
@@ -110,7 +110,7 @@ public class NodeManagementExample
                 // Get version information
                 Console.WriteLine($"\n🔧 Getting version info for node '{onlineNode.Node}'...");
                 var version = await client.Nodes.GetNodeVersionAsync(onlineNode.Node);
-                
+
                 Console.WriteLine("Version Information:");
                 foreach (var kvp in version)
                 {
@@ -122,7 +122,7 @@ public class NodeManagementExample
                 try
                 {
                     var subscription = await client.Nodes.GetNodeSubscriptionAsync(onlineNode.Node);
-                    
+
                     Console.WriteLine("Subscription Information:");
                     foreach (var kvp in subscription)
                     {
@@ -163,7 +163,7 @@ public class NodeManagementExample
             // Get nodes summary
             Console.WriteLine("\n📊 Getting nodes summary...");
             var summary = await client.Nodes.GetNodesSummaryAsync();
-            
+
             Console.WriteLine("Nodes Summary:");
             foreach (var kvp in summary)
             {

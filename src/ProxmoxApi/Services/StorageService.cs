@@ -42,7 +42,7 @@ public class StorageService
         try
         {
             var response = await _httpClient.GetAsync<List<ProxmoxStorage>>(
-                "storage", 
+                "storage",
                 cancellationToken);
 
             if (response != null)
@@ -77,7 +77,7 @@ public class StorageService
         try
         {
             var response = await _httpClient.GetAsync<ProxmoxStorage>(
-                $"storage/{storageId}", 
+                $"storage/{storageId}",
                 cancellationToken);
 
             if (response != null)
@@ -264,7 +264,7 @@ public class StorageService
 
             if (response != null)
             {
-                _logger.LogInformation("Retrieved storage status for {Count} storages on node {NodeName}", 
+                _logger.LogInformation("Retrieved storage status for {Count} storages on node {NodeName}",
                     response.Count, nodeName);
                 return response;
             }
@@ -289,10 +289,10 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of storage content</returns>
     public async Task<List<StorageContent>> GetStorageContentAsync(
-        string nodeName, 
-        string storageId, 
-        string? contentType = null, 
-        int? vmId = null, 
+        string nodeName,
+        string storageId,
+        string? contentType = null,
+        int? vmId = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(nodeName))
@@ -321,7 +321,7 @@ public class StorageService
 
             if (response != null)
             {
-                _logger.LogInformation("Retrieved {Count} content items from storage {StorageId}", 
+                _logger.LogInformation("Retrieved {Count} content items from storage {StorageId}",
                     response.Count, storageId);
                 return response;
             }
@@ -349,9 +349,9 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task representing the operation</returns>
     public async Task CreateVolumeAsync(
-        string nodeName, 
-        string storageId, 
-        VolumeCreateOptions options, 
+        string nodeName,
+        string storageId,
+        VolumeCreateOptions options,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(nodeName))
@@ -387,8 +387,8 @@ public class StorageService
                 data["notes"] = options.Notes;
 
             await _httpClient.PostAsync<object>(
-                $"nodes/{nodeName}/storage/{storageId}/content", 
-                data, 
+                $"nodes/{nodeName}/storage/{storageId}/content",
+                data,
                 cancellationToken);
 
             _logger.LogInformation("Successfully created volume {VolumeId}", options.VolumeId);
@@ -409,9 +409,9 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task representing the operation</returns>
     public async Task DeleteVolumeAsync(
-        string nodeName, 
-        string storageId, 
-        string volumeId, 
+        string nodeName,
+        string storageId,
+        string volumeId,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(nodeName))
@@ -428,7 +428,7 @@ public class StorageService
         try
         {
             await _httpClient.DeleteAsync<object>(
-                $"nodes/{nodeName}/storage/{storageId}/content/{Uri.EscapeDataString(volumeId)}", 
+                $"nodes/{nodeName}/storage/{storageId}/content/{Uri.EscapeDataString(volumeId)}",
                 cancellationToken);
 
             _logger.LogInformation("Successfully deleted volume {VolumeId}", volumeId);
@@ -451,11 +451,11 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task ID for tracking the operation</returns>
     public async Task<string> CopyVolumeAsync(
-        string nodeName, 
-        string storageId, 
-        string volumeId, 
-        string targetStorage, 
-        string? targetVolumeId = null, 
+        string nodeName,
+        string storageId,
+        string volumeId,
+        string targetStorage,
+        string? targetVolumeId = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(nodeName))
@@ -483,8 +483,8 @@ public class StorageService
                 data["target_filename"] = targetVolumeId;
 
             var response = await _httpClient.PostAsync<string>(
-                $"nodes/{nodeName}/storage/{storageId}/content/{Uri.EscapeDataString(volumeId)}/copy", 
-                data, 
+                $"nodes/{nodeName}/storage/{storageId}/content/{Uri.EscapeDataString(volumeId)}/copy",
+                data,
                 cancellationToken);
 
             _logger.LogInformation("Started volume copy operation with task ID {TaskId}", response);
@@ -510,13 +510,13 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of backup files</returns>
     public async Task<List<StorageBackup>> GetBackupsAsync(
-        string nodeName, 
-        string storageId, 
-        int? vmId = null, 
+        string nodeName,
+        string storageId,
+        int? vmId = null,
         CancellationToken cancellationToken = default)
     {
         var content = await GetStorageContentAsync(nodeName, storageId, "backup", vmId, cancellationToken);
-        
+
         return content.Select(c => new StorageBackup
         {
             Filename = c.VolumeId.Split('/').LastOrDefault() ?? c.VolumeId,
@@ -539,9 +539,9 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Download URL or content</returns>
     public async Task<string> DownloadBackupAsync(
-        string nodeName, 
-        string storageId, 
-        string backupFile, 
+        string nodeName,
+        string storageId,
+        string backupFile,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(nodeName))
@@ -558,7 +558,7 @@ public class StorageService
         try
         {
             var response = await _httpClient.GetAsync<string>(
-                $"nodes/{nodeName}/storage/{storageId}/download/{Uri.EscapeDataString(backupFile)}", 
+                $"nodes/{nodeName}/storage/{storageId}/download/{Uri.EscapeDataString(backupFile)}",
                 cancellationToken);
 
             _logger.LogInformation("Successfully retrieved download info for backup {BackupFile}", backupFile);
@@ -580,9 +580,9 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task representing the operation</returns>
     public async Task DeleteBackupAsync(
-        string nodeName, 
-        string storageId, 
-        string backupFile, 
+        string nodeName,
+        string storageId,
+        string backupFile,
         CancellationToken cancellationToken = default)
     {
         var volumeId = $"{storageId}:backup/{backupFile}";
@@ -601,8 +601,8 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of ISO images</returns>
     public async Task<List<StorageContent>> GetIsoImagesAsync(
-        string nodeName, 
-        string storageId, 
+        string nodeName,
+        string storageId,
         CancellationToken cancellationToken = default)
     {
         return await GetStorageContentAsync(nodeName, storageId, "iso", null, cancellationToken);
@@ -616,8 +616,8 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of container templates</returns>
     public async Task<List<StorageContent>> GetContainerTemplatesAsync(
-        string nodeName, 
-        string storageId, 
+        string nodeName,
+        string storageId,
         CancellationToken cancellationToken = default)
     {
         return await GetStorageContentAsync(nodeName, storageId, "vztmpl", null, cancellationToken);
@@ -633,10 +633,10 @@ public class StorageService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task ID for tracking the upload</returns>
     public async Task<string> UploadFileAsync(
-        string nodeName, 
-        string storageId, 
-        string filename, 
-        string contentType = "iso", 
+        string nodeName,
+        string storageId,
+        string filename,
+        string contentType = "iso",
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(nodeName))
@@ -659,8 +659,8 @@ public class StorageService
             };
 
             var response = await _httpClient.PostAsync<string>(
-                $"nodes/{nodeName}/storage/{storageId}/upload", 
-                data, 
+                $"nodes/{nodeName}/storage/{storageId}/upload",
+                data,
                 cancellationToken);
 
             _logger.LogInformation("Started file upload with task ID {TaskId}", response);

@@ -223,8 +223,8 @@ public class ContainerStatus
     /// </summary>
     [JsonPropertyName("maxdisk")]
     public long? MaxDisk { get; set; }    /// <summary>
-    /// Ha status information
-    /// </summary>
+                                          /// Ha status information
+                                          /// </summary>
     [JsonPropertyName("ha")]
     public Dictionary<string, object>? Ha { get; set; }
 

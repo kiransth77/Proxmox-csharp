@@ -173,8 +173,8 @@ public class StorageContent
     /// <summary>
     /// Creation time as DateTime
     /// </summary>
-    public DateTime? CreatedAt => CreationTime.HasValue 
-        ? DateTimeOffset.FromUnixTimeSeconds(CreationTime.Value).DateTime 
+    public DateTime? CreatedAt => CreationTime.HasValue
+        ? DateTimeOffset.FromUnixTimeSeconds(CreationTime.Value).DateTime
         : null;
 
     /// <summary>

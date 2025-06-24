@@ -36,7 +36,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.GetAsync<List<NetworkInterface>>(
-                $"nodes/{TestNodeName}/network", 
+                $"nodes/{TestNodeName}/network",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedInterfaces);
 
@@ -49,7 +49,7 @@ public class NetworkServiceTests
         Assert.Equal("eth0", result[0].InterfaceName);
         Assert.Equal("vmbr0", result[1].InterfaceName);
         _mockHttpClient.Verify(x => x.GetAsync<List<NetworkInterface>>(
-            $"nodes/{TestNodeName}/network", 
+            $"nodes/{TestNodeName}/network",
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -58,16 +58,16 @@ public class NetworkServiceTests
     {
         // Arrange
         const string interfaceName = "eth0";
-        var expectedInterface = new NetworkInterface 
-        { 
-            InterfaceName = interfaceName, 
-            Type = "eth", 
-            Method = "static", 
-            Address = "192.168.1.10" 
+        var expectedInterface = new NetworkInterface
+        {
+            InterfaceName = interfaceName,
+            Type = "eth",
+            Method = "static",
+            Address = "192.168.1.10"
         };
 
         _mockHttpClient.Setup(x => x.GetAsync<NetworkInterface>(
-                $"nodes/{TestNodeName}/network/{interfaceName}", 
+                $"nodes/{TestNodeName}/network/{interfaceName}",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedInterface);
 
@@ -79,7 +79,7 @@ public class NetworkServiceTests
         Assert.Equal(interfaceName, result.InterfaceName);
         Assert.Equal("eth", result.Type);
         _mockHttpClient.Verify(x => x.GetAsync<NetworkInterface>(
-            $"nodes/{TestNodeName}/network/{interfaceName}", 
+            $"nodes/{TestNodeName}/network/{interfaceName}",
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -96,7 +96,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.PostAsync<object>(
-                $"nodes/{TestNodeName}/network", 
+                $"nodes/{TestNodeName}/network",
                 It.IsAny<NetworkInterfaceCreateOptions>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new object());
@@ -106,7 +106,7 @@ public class NetworkServiceTests
 
         // Assert
         _mockHttpClient.Verify(x => x.PostAsync<object>(
-            $"nodes/{TestNodeName}/network", 
+            $"nodes/{TestNodeName}/network",
             It.Is<NetworkInterfaceCreateOptions>(o => o.InterfaceName == "vmbr1"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -122,7 +122,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.PutAsync<object>(
-                $"nodes/{TestNodeName}/network/{interfaceName}", 
+                $"nodes/{TestNodeName}/network/{interfaceName}",
                 It.IsAny<NetworkInterfaceUpdateOptions>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new object());
@@ -132,7 +132,7 @@ public class NetworkServiceTests
 
         // Assert
         _mockHttpClient.Verify(x => x.PutAsync<object>(
-            $"nodes/{TestNodeName}/network/{interfaceName}", 
+            $"nodes/{TestNodeName}/network/{interfaceName}",
             It.Is<NetworkInterfaceUpdateOptions>(o => o.Method == "dhcp"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -144,7 +144,7 @@ public class NetworkServiceTests
         const string interfaceName = "vmbr1";
 
         _mockHttpClient.Setup(x => x.DeleteAsync<object>(
-                $"nodes/{TestNodeName}/network/{interfaceName}", 
+                $"nodes/{TestNodeName}/network/{interfaceName}",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new object());
 
@@ -153,7 +153,7 @@ public class NetworkServiceTests
 
         // Assert
         _mockHttpClient.Verify(x => x.DeleteAsync<object>(
-            $"nodes/{TestNodeName}/network/{interfaceName}", 
+            $"nodes/{TestNodeName}/network/{interfaceName}",
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -168,7 +168,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.GetAsync<List<FirewallRule>>(
-                $"nodes/{TestNodeName}/firewall/rules", 
+                $"nodes/{TestNodeName}/firewall/rules",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedRules);
 
@@ -181,7 +181,7 @@ public class NetworkServiceTests
         Assert.Equal(0, result[0].Position);
         Assert.Equal("ACCEPT", result[0].Action);
         _mockHttpClient.Verify(x => x.GetAsync<List<FirewallRule>>(
-            $"nodes/{TestNodeName}/firewall/rules", 
+            $"nodes/{TestNodeName}/firewall/rules",
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -198,7 +198,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.PostAsync<object>(
-                $"nodes/{TestNodeName}/firewall/rules", 
+                $"nodes/{TestNodeName}/firewall/rules",
                 It.IsAny<FirewallRuleCreateOptions>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new object());
@@ -208,7 +208,7 @@ public class NetworkServiceTests
 
         // Assert
         _mockHttpClient.Verify(x => x.PostAsync<object>(
-            $"nodes/{TestNodeName}/firewall/rules", 
+            $"nodes/{TestNodeName}/firewall/rules",
             It.Is<FirewallRuleCreateOptions>(o => o.Action == "ACCEPT" && o.DestinationPort == "22"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -225,7 +225,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.GetAsync<DnsConfig>(
-                $"nodes/{TestNodeName}/dns", 
+                $"nodes/{TestNodeName}/dns",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedDnsConfig);
 
@@ -237,7 +237,7 @@ public class NetworkServiceTests
         Assert.Equal("example.com", result.SearchDomain);
         Assert.Equal("8.8.8.8", result.Dns1);
         _mockHttpClient.Verify(x => x.GetAsync<DnsConfig>(
-            $"nodes/{TestNodeName}/dns", 
+            $"nodes/{TestNodeName}/dns",
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -253,7 +253,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.PutAsync<object>(
-                $"nodes/{TestNodeName}/dns", 
+                $"nodes/{TestNodeName}/dns",
                 It.IsAny<DnsConfig>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new object());
@@ -263,7 +263,7 @@ public class NetworkServiceTests
 
         // Assert
         _mockHttpClient.Verify(x => x.PutAsync<object>(
-            $"nodes/{TestNodeName}/dns", 
+            $"nodes/{TestNodeName}/dns",
             It.Is<DnsConfig>(d => d.Dns1 == "1.1.1.1"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -279,7 +279,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.GetAsync<List<HostEntry>>(
-                $"nodes/{TestNodeName}/hosts", 
+                $"nodes/{TestNodeName}/hosts",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedHostEntries);
 
@@ -292,7 +292,7 @@ public class NetworkServiceTests
         Assert.Equal("localhost", result[0].Hostname);
         Assert.Equal("192.168.1.10", result[1].IpAddress);
         _mockHttpClient.Verify(x => x.GetAsync<List<HostEntry>>(
-            $"nodes/{TestNodeName}/hosts", 
+            $"nodes/{TestNodeName}/hosts",
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -309,7 +309,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.PostAsync<object>(
-                $"nodes/{TestNodeName}/network", 
+                $"nodes/{TestNodeName}/network",
                 It.IsAny<NetworkInterfaceCreateOptions>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new object());
@@ -319,10 +319,10 @@ public class NetworkServiceTests
 
         // Assert
         _mockHttpClient.Verify(x => x.PostAsync<object>(
-            $"nodes/{TestNodeName}/network", 
-            It.Is<NetworkInterfaceCreateOptions>(o => 
-                o.InterfaceName == "vmbr1" && 
-                o.Type == "bridge" && 
+            $"nodes/{TestNodeName}/network",
+            It.Is<NetworkInterfaceCreateOptions>(o =>
+                o.InterfaceName == "vmbr1" &&
+                o.Type == "bridge" &&
                 o.BridgePorts == "eth0,eth1"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -341,7 +341,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.PostAsync<object>(
-                $"nodes/{TestNodeName}/network", 
+                $"nodes/{TestNodeName}/network",
                 It.IsAny<NetworkInterfaceCreateOptions>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new object());
@@ -351,10 +351,10 @@ public class NetworkServiceTests
 
         // Assert
         _mockHttpClient.Verify(x => x.PostAsync<object>(
-            $"nodes/{TestNodeName}/network", 
-            It.Is<NetworkInterfaceCreateOptions>(o => 
-                o.InterfaceName == "vlan100" && 
-                o.Type == "vlan" && 
+            $"nodes/{TestNodeName}/network",
+            It.Is<NetworkInterfaceCreateOptions>(o =>
+                o.InterfaceName == "vlan100" &&
+                o.Type == "vlan" &&
                 o.VlanId == 100 &&
                 o.VlanRawDevice == "eth0"),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -374,7 +374,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.PostAsync<object>(
-                $"nodes/{TestNodeName}/network", 
+                $"nodes/{TestNodeName}/network",
                 It.IsAny<NetworkInterfaceCreateOptions>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new object());
@@ -384,16 +384,16 @@ public class NetworkServiceTests
 
         // Assert
         _mockHttpClient.Verify(x => x.PostAsync<object>(
-            $"nodes/{TestNodeName}/network", 
-            It.Is<NetworkInterfaceCreateOptions>(o => 
-                o.InterfaceName == "bond0" && 
-                o.Type == "bond" && 
+            $"nodes/{TestNodeName}/network",
+            It.Is<NetworkInterfaceCreateOptions>(o =>
+                o.InterfaceName == "bond0" &&
+                o.Type == "bond" &&
                 o.BondSlaves == "eth0 eth1" &&
                 o.BondMode == "active-backup"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]  
+    [Fact]
     public async Task GetBridgesAsync_FiltersOnlyBridgeInterfaces()
     {
         // Arrange
@@ -406,7 +406,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.GetAsync<List<NetworkInterface>>(
-                $"nodes/{TestNodeName}/network", 
+                $"nodes/{TestNodeName}/network",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(allInterfaces);
 
@@ -432,7 +432,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.GetAsync<List<NetworkInterface>>(
-                $"nodes/{TestNodeName}/network", 
+                $"nodes/{TestNodeName}/network",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(interfaces);
 
@@ -556,7 +556,7 @@ public class NetworkServiceTests
         };
 
         _mockHttpClient.Setup(x => x.GetAsync<NetworkStatus>(
-                $"nodes/{TestNodeName}/status", 
+                $"nodes/{TestNodeName}/status",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedStatus);
 
@@ -575,7 +575,7 @@ public class NetworkServiceTests
     {
         // Arrange
         _mockHttpClient.Setup(x => x.PutAsync<object>(
-                $"nodes/{TestNodeName}/network", 
+                $"nodes/{TestNodeName}/network",
                 It.IsAny<object>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new object());
@@ -585,7 +585,7 @@ public class NetworkServiceTests
 
         // Assert
         _mockHttpClient.Verify(x => x.PutAsync<object>(
-            $"nodes/{TestNodeName}/network", 
+            $"nodes/{TestNodeName}/network",
             It.IsAny<object>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }

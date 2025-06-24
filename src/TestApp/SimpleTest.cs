@@ -28,9 +28,9 @@ class SimpleTest
             }
 
             var configJson = await File.ReadAllTextAsync(configPath);
-            var config = JsonSerializer.Deserialize<ConfigRoot>(configJson, new JsonSerializerOptions 
-            { 
-                PropertyNameCaseInsensitive = true 
+            var config = JsonSerializer.Deserialize<ConfigRoot>(configJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
             });
 
             if (config?.ProxmoxConnection == null)
@@ -40,7 +40,7 @@ class SimpleTest
             }
 
             var connectionInfo = config.ProxmoxConnection;
-            
+
             // Validate required fields
             if (string.IsNullOrEmpty(connectionInfo.Host) || string.IsNullOrEmpty(connectionInfo.Username))
             {
@@ -63,15 +63,15 @@ class SimpleTest
             // Configure logging
             using var loggerFactory = LoggerFactory.Create(builder =>
                 builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
+
             var logger = loggerFactory.CreateLogger<ProxmoxClient>();
 
             using var client = new ProxmoxClient(connectionInfo, logger);
-            
+
             // Test connection
             Console.WriteLine("📡 Testing connection...");
             var isConnected = await client.TestConnectionAsync();
-            
+
             if (!isConnected)
             {
                 Console.WriteLine("❌ Connection failed!");
@@ -82,7 +82,7 @@ class SimpleTest
             // Test authentication
             Console.WriteLine("\n🔐 Testing authentication...");
             var isAuthenticated = await client.AuthenticateAsync();
-            
+
             if (!isAuthenticated)
             {
                 Console.WriteLine("❌ Authentication failed!");
@@ -93,7 +93,7 @@ class SimpleTest
             // Get version info
             Console.WriteLine("\n📋 Getting server information...");
             var version = await client.GetVersionAsync();
-            
+
             Console.WriteLine("✅ Server Information:");
             foreach (var kvp in version)
             {
@@ -108,17 +108,17 @@ class SimpleTest
             {
                 var nodes = await client.Nodes.GetNodesAsync();
                 Console.WriteLine($"✅ Found {nodes.Count} nodes in the cluster");
-                
+
                 foreach (var node in nodes.Take(3)) // Limit to first 3 nodes
                 {
                     var status = node.IsOnline ? "🟢 Online" : "🔴 Offline";
                     Console.WriteLine($"   {status} {node.Node} ({node.Type})");
-                    
+
                     if (node.IsOnline)
                     {
                         var nodeStatus = await client.Nodes.GetNodeStatusAsync(node.Node);
                         Console.WriteLine($"      Uptime: {nodeStatus.UptimeSpan.Days}d {nodeStatus.UptimeSpan.Hours}h");
-                        
+
                         if (nodeStatus.Memory != null)
                         {
                             var memGB = nodeStatus.Memory.Total / (1024.0 * 1024.0 * 1024.0);

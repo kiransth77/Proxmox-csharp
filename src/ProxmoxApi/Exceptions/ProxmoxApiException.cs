@@ -26,7 +26,7 @@ public class ProxmoxApiException : Exception
     {
     }
 
-    public ProxmoxApiException(string message, int statusCode, Dictionary<string, string>? errorDetails = null) 
+    public ProxmoxApiException(string message, int statusCode, Dictionary<string, string>? errorDetails = null)
         : base(message)
     {
         StatusCode = statusCode;

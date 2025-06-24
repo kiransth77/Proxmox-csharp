@@ -24,7 +24,7 @@ public class ProxmoxHttpClientTests : IDisposable
         _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
         _mockLogger = new Mock<ILogger<ProxmoxHttpClient>>();
         _httpClient = new HttpClient(_mockHttpMessageHandler.Object);
-        
+
         _connectionInfo = new ProxmoxConnectionInfo
         {
             Host = "test.proxmox.com",
@@ -58,8 +58,8 @@ public class ProxmoxHttpClientTests : IDisposable
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
-                "SendAsync", 
-                ItExpr.IsAny<HttpRequestMessage>(), 
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(httpResponse);
 
@@ -72,8 +72,8 @@ public class ProxmoxHttpClientTests : IDisposable
             .Verify<Task<HttpResponseMessage>>(
                 "SendAsync",
                 Times.Once(),
-                ItExpr.Is<HttpRequestMessage>(req => 
-                    req.Method == HttpMethod.Post && 
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Post &&
                     req.RequestUri!.ToString().Contains("/access/ticket")),
                 ItExpr.IsAny<CancellationToken>());
     }
@@ -90,13 +90,14 @@ public class ProxmoxHttpClientTests : IDisposable
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
-                "SendAsync", 
-                ItExpr.IsAny<HttpRequestMessage>(), 
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(httpResponse);        // Act & Assert
-        await Assert.ThrowsAsync<ProxmoxAuthenticationException>(() => 
+        await Assert.ThrowsAsync<ProxmoxAuthenticationException>(() =>
             _proxmoxHttpClient.AuthenticateAsync());
-    }    [Fact]
+    }
+    [Fact]
     public async Task GetAsync_ReturnsDeserializedResponse_WhenSuccessful()
     {
         // Arrange
@@ -110,8 +111,8 @@ public class ProxmoxHttpClientTests : IDisposable
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
-                "SendAsync", 
-                ItExpr.IsAny<HttpRequestMessage>(), 
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(httpResponse);
 
@@ -125,8 +126,8 @@ public class ProxmoxHttpClientTests : IDisposable
             .Verify<Task<HttpResponseMessage>>(
                 "SendAsync",
                 Times.Once(),
-                ItExpr.Is<HttpRequestMessage>(req => 
-                    req.Method == HttpMethod.Get && 
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
                     req.RequestUri!.ToString().Contains("test/endpoint")),
                 ItExpr.IsAny<CancellationToken>());
     }
@@ -145,8 +146,8 @@ public class ProxmoxHttpClientTests : IDisposable
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
-                "SendAsync", 
-                ItExpr.IsAny<HttpRequestMessage>(), 
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(httpResponse);
 
@@ -160,8 +161,8 @@ public class ProxmoxHttpClientTests : IDisposable
             .Verify<Task<HttpResponseMessage>>(
                 "SendAsync",
                 Times.Once(),
-                ItExpr.Is<HttpRequestMessage>(req => 
-                    req.Method == HttpMethod.Post && 
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Post &&
                     req.RequestUri!.ToString().Contains("test/endpoint")),
                 ItExpr.IsAny<CancellationToken>());
     }
@@ -180,8 +181,8 @@ public class ProxmoxHttpClientTests : IDisposable
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
-                "SendAsync", 
-                ItExpr.IsAny<HttpRequestMessage>(), 
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(httpResponse);
 
@@ -195,8 +196,8 @@ public class ProxmoxHttpClientTests : IDisposable
             .Verify<Task<HttpResponseMessage>>(
                 "SendAsync",
                 Times.Once(),
-                ItExpr.Is<HttpRequestMessage>(req => 
-                    req.Method == HttpMethod.Put && 
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Put &&
                     req.RequestUri!.ToString().Contains("test/endpoint")),
                 ItExpr.IsAny<CancellationToken>());
     }
@@ -214,8 +215,8 @@ public class ProxmoxHttpClientTests : IDisposable
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
-                "SendAsync", 
-                ItExpr.IsAny<HttpRequestMessage>(), 
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(httpResponse);
 
@@ -229,8 +230,8 @@ public class ProxmoxHttpClientTests : IDisposable
             .Verify<Task<HttpResponseMessage>>(
                 "SendAsync",
                 Times.Once(),
-                ItExpr.Is<HttpRequestMessage>(req => 
-                    req.Method == HttpMethod.Delete && 
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Delete &&
                     req.RequestUri!.ToString().Contains("test/endpoint")),
                 ItExpr.IsAny<CancellationToken>());
     }
@@ -250,22 +251,22 @@ public class ProxmoxHttpClientTests : IDisposable
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
-                "SendAsync", 
-                ItExpr.IsAny<HttpRequestMessage>(), 
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(httpResponse);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ProxmoxApiException>(() => 
+        await Assert.ThrowsAsync<ProxmoxApiException>(() =>
             _proxmoxHttpClient.GetAsync<object>("test/endpoint"));
-            
-        await Assert.ThrowsAsync<ProxmoxApiException>(() => 
+
+        await Assert.ThrowsAsync<ProxmoxApiException>(() =>
             _proxmoxHttpClient.PostAsync<object>("test/endpoint", new { }));
-            
-        await Assert.ThrowsAsync<ProxmoxApiException>(() => 
+
+        await Assert.ThrowsAsync<ProxmoxApiException>(() =>
             _proxmoxHttpClient.PutAsync<object>("test/endpoint", new { }));
-            
-        await Assert.ThrowsAsync<ProxmoxApiException>(() => 
+
+        await Assert.ThrowsAsync<ProxmoxApiException>(() =>
             _proxmoxHttpClient.DeleteAsync<object>("test/endpoint"));
     }
 

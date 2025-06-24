@@ -30,28 +30,28 @@ public class ContainerManagementExample
         try
         {
             _logger.LogInformation("=== Container Management Example ===");
-            
+
             // List all containers across the cluster
             await ListAllContainers();
-            
+
             // Get containers on a specific node
             await ListNodeContainers();
-            
+
             // Create a new container
             //await CreateNewContainer();
-            
+
             // Manage container lifecycle
             await ManageContainerLifecycle();
-            
+
             // Monitor container resources
             await MonitorContainerResources();
-            
+
             // Manage container snapshots
             await ManageContainerSnapshots();
-            
+
             // Container configuration management
             await ManageContainerConfiguration();
-            
+
             _logger.LogInformation("=== Container Management Example Completed ===");
         }
         catch (Exception ex)
@@ -67,15 +67,15 @@ public class ContainerManagementExample
     private async Task ListAllContainers()
     {
         _logger.LogInformation("--- Listing All Containers ---");
-        
+
         try
         {
             var containers = await _client.Containers.GetAllContainersAsync();
-            
+
             if (containers.Any())
             {
                 _logger.LogInformation($"Found {containers.Count} containers:");
-                
+
                 foreach (var container in containers)
                 {
                     _logger.LogInformation($"Container {container.ContainerId}: {container.Name} " +
@@ -83,12 +83,12 @@ public class ContainerManagementExample
                                          $"(Memory: {container.Memory / 1024 / 1024} MB, " +
                                          $"Cores: {container.Cores}, " +
                                          $"OS: {container.OsType})");
-                    
+
                     if (!string.IsNullOrEmpty(container.Tags))
                     {
                         _logger.LogInformation($"  Tags: {container.Tags}");
                     }
-                    
+
                     if (container.Uptime.HasValue && container.Uptime > 0)
                     {
                         var uptime = TimeSpan.FromSeconds(container.Uptime.Value);
@@ -113,12 +113,12 @@ public class ContainerManagementExample
     private async Task ListNodeContainers()
     {
         _logger.LogInformation("--- Listing Node Containers ---");
-        
+
         try
         {
             // Get all nodes first
             var nodes = await _client.Nodes.GetNodesAsync();
-            
+
             if (!nodes.Any())
             {
                 _logger.LogWarning("No nodes found in the cluster");
@@ -127,20 +127,20 @@ public class ContainerManagementExample
 
             var firstNode = nodes.First();
             _logger.LogInformation($"Getting containers for node: {firstNode.Node}");
-            
+
             var containers = await _client.Containers.GetContainersAsync(firstNode.Node);
-            
+
             if (containers.Any())
             {
                 _logger.LogInformation($"Found {containers.Count} containers on node {firstNode.Node}:");
-                
+
                 foreach (var container in containers)
                 {
                     _logger.LogInformation($"  {container.ContainerId}: {container.Name} [{container.Status}]");
-                    
+
                     if (container.IsTemplate)
                         _logger.LogInformation($"    [TEMPLATE]");
-                    
+
                     if (container.IsUnprivileged)
                         _logger.LogInformation($"    [UNPRIVILEGED]");
                 }
@@ -162,7 +162,7 @@ public class ContainerManagementExample
     private async Task CreateNewContainer()
     {
         _logger.LogInformation("--- Creating New Container (Example) ---");
-        
+
         try
         {
             // Get nodes to choose one for container creation
@@ -175,7 +175,7 @@ public class ContainerManagementExample
 
             var targetNode = nodes.First();
             var containerId = 999; // Use a test ID
-            
+
             var createParams = new ContainerCreateParameters
             {
                 ContainerId = containerId,
@@ -195,13 +195,13 @@ public class ContainerManagementExample
             _logger.LogInformation($"Would create container {containerId} on node {targetNode.Node}");
             _logger.LogInformation($"Configuration: {createParams.Memory}MB RAM, {createParams.Cores} cores");
             _logger.LogInformation($"Template: {createParams.OsTemplate}");
-            
+
             // Uncomment to actually create the container:
             /*
             var taskId = await _client.Containers.CreateContainerAsync(targetNode.Node, createParams);
             _logger.LogInformation($"Container creation task started: {taskId}");
             */
-            
+
             _logger.LogInformation("Container creation example completed (not actually created)");
         }
         catch (Exception ex)
@@ -216,16 +216,16 @@ public class ContainerManagementExample
     private async Task ManageContainerLifecycle()
     {
         _logger.LogInformation("--- Container Lifecycle Management ---");
-        
+
         try
         {
             var containers = await _client.Containers.GetAllContainersAsync();
             var runningContainer = containers.FirstOrDefault(c => c.Status.Equals("running", StringComparison.OrdinalIgnoreCase));
-            
+
             if (runningContainer != null)
             {
                 _logger.LogInformation($"Found running container: {runningContainer.ContainerId} ({runningContainer.Name})");
-                
+
                 // Get detailed status
                 var status = await _client.Containers.GetContainerStatusAsync(runningContainer.Node, runningContainer.ContainerId);
                 if (status != null)
@@ -233,16 +233,16 @@ public class ContainerManagementExample
                     _logger.LogInformation($"Container Status Details:");
                     _logger.LogInformation($"  Status: {status.Status}");
                     _logger.LogInformation($"  PID: {status.ProcessId}");
-                    
+
                     if (status.Uptime.HasValue)
                     {
                         var uptime = TimeSpan.FromSeconds(status.Uptime.Value);
                         _logger.LogInformation($"  Uptime: {uptime.Days}d {uptime.Hours}h {uptime.Minutes}m");
                     }
-                    
+
                     if (status.CpuUsage.HasValue)
                         _logger.LogInformation($"  CPU Usage: {status.CpuUsage.Value:P2}");
-                    
+
                     if (status.MemoryUsage.HasValue && status.MaxMemory.HasValue)
                         _logger.LogInformation($"  Memory: {status.MemoryUsage.Value / 1024 / 1024} MB / {status.MaxMemory.Value / 1024 / 1024} MB");
                 }
@@ -271,20 +271,20 @@ public class ContainerManagementExample
     private async Task MonitorContainerResources()
     {
         _logger.LogInformation("--- Container Resource Monitoring ---");
-        
+
         try
         {
             var containers = await _client.Containers.GetAllContainersAsync();
             var runningContainers = containers.Where(c => c.Status.Equals("running", StringComparison.OrdinalIgnoreCase)).ToList();
-            
+
             if (runningContainers.Any())
             {
                 _logger.LogInformation($"Monitoring {runningContainers.Count} running containers:");
-                
+
                 foreach (var container in runningContainers.Take(3)) // Limit to first 3 for demo
                 {
                     _logger.LogInformation($"\nContainer {container.ContainerId} ({container.Name}) on {container.Node}:");
-                    
+
                     try
                     {
                         var statistics = await _client.Containers.GetContainerStatisticsAsync(container.Node, container.ContainerId);
@@ -328,19 +328,19 @@ public class ContainerManagementExample
     private async Task ManageContainerSnapshots()
     {
         _logger.LogInformation("--- Container Snapshot Management ---");
-        
+
         try
         {
             var containers = await _client.Containers.GetAllContainersAsync();
             var targetContainer = containers.FirstOrDefault();
-            
+
             if (targetContainer != null)
             {
                 _logger.LogInformation($"Managing snapshots for container {targetContainer.ContainerId} ({targetContainer.Name})");
-                
+
                 // List existing snapshots
                 var snapshots = await _client.Containers.GetContainerSnapshotsAsync(targetContainer.Node, targetContainer.ContainerId);
-                
+
                 if (snapshots.Any())
                 {
                     _logger.LogInformation($"Found {snapshots.Count} snapshots:");
@@ -366,7 +366,7 @@ public class ContainerManagementExample
                 _logger.LogInformation("\nSnapshot operations available:");
                 _logger.LogInformation("  - Create: _client.Containers.CreateContainerSnapshotAsync()");
                 _logger.LogInformation("  - Delete: _client.Containers.DeleteContainerSnapshotAsync()");
-                
+
                 /*
                 // Example: Create a snapshot
                 var taskId = await _client.Containers.CreateContainerSnapshotAsync(
@@ -395,18 +395,18 @@ public class ContainerManagementExample
     private async Task ManageContainerConfiguration()
     {
         _logger.LogInformation("--- Container Configuration Management ---");
-        
+
         try
         {
             var containers = await _client.Containers.GetAllContainersAsync();
             var targetContainer = containers.FirstOrDefault();
-            
+
             if (targetContainer != null)
             {
                 _logger.LogInformation($"Getting configuration for container {targetContainer.ContainerId} ({targetContainer.Name})");
-                
+
                 var config = await _client.Containers.GetContainerConfigAsync(targetContainer.Node, targetContainer.ContainerId);
-                
+
                 if (config != null)
                 {
                     _logger.LogInformation("Container Configuration:");
@@ -419,13 +419,13 @@ public class ContainerManagementExample
                     _logger.LogInformation($"  Root FS: {config.RootFs}");
                     _logger.LogInformation($"  Unprivileged: {config.IsUnprivileged}");
                     _logger.LogInformation($"  Template: {config.IsTemplate}");
-                    
+
                     if (!string.IsNullOrEmpty(config.Description))
                         _logger.LogInformation($"  Description: {config.Description}");
-                    
+
                     if (!string.IsNullOrEmpty(config.Tags))
                         _logger.LogInformation($"  Tags: {config.Tags}");
-                    
+
                     if (!string.IsNullOrEmpty(config.Network0))
                         _logger.LogInformation($"  Network: {config.Network0}");
 

@@ -18,7 +18,8 @@ namespace ProxmoxApi;
 /// Main client for interacting with Proxmox VE API
 /// </summary>
 public class ProxmoxClient : IDisposable
-{    private readonly ProxmoxHttpClient _httpClient;
+{
+    private readonly ProxmoxHttpClient _httpClient;
     private readonly ILogger<ProxmoxClient> _logger;
     private readonly NodeService _nodeService;
     private readonly VmService _vmService;
@@ -41,8 +42,8 @@ public class ProxmoxClient : IDisposable
     /// Container (LXC) management service
     /// </summary>
     public ContainerService Containers => _containerService;    /// <summary>
-    /// Storage management service
-    /// </summary>
+                                                                /// Storage management service
+                                                                /// </summary>
     public StorageService Storage => _storageService;
 
     /// <summary>
@@ -62,39 +63,39 @@ public class ProxmoxClient : IDisposable
         _logger = logger ?? new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
-            .GetRequiredService<ILogger<ProxmoxClient>>();        var httpClient = CreateHttpClient(connectionInfo);
+            .GetRequiredService<ILogger<ProxmoxClient>>(); var httpClient = CreateHttpClient(connectionInfo);
         var httpLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<ProxmoxHttpClient>>();
 
         _httpClient = new ProxmoxHttpClient(httpClient, connectionInfo, httpLogger);
-        
+
         // Initialize services with proper logger
         var nodeLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<NodeService>>();
         _nodeService = new NodeService(_httpClient, nodeLogger);
-        
+
         var vmLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<VmService>>();
         _vmService = new VmService(_httpClient, vmLogger);
-        
+
         var containerLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<ContainerService>>();
         _containerService = new ContainerService(_httpClient, containerLogger);
-        
+
         var storageLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<StorageService>>();
         _storageService = new StorageService(_httpClient, storageLogger);
-        
+
         var networkLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
@@ -112,39 +113,39 @@ public class ProxmoxClient : IDisposable
     {
         ArgumentNullException.ThrowIfNull(httpClient);
         ArgumentNullException.ThrowIfNull(connectionInfo);
-        ArgumentNullException.ThrowIfNull(logger);        _logger = logger;
+        ArgumentNullException.ThrowIfNull(logger); _logger = logger;
         var httpLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<ProxmoxHttpClient>>();
 
         _httpClient = new ProxmoxHttpClient(httpClient, connectionInfo, httpLogger);
-        
+
         // Initialize services with proper logger
         var nodeLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<NodeService>>();
         _nodeService = new NodeService(_httpClient, nodeLogger);
-        
+
         var vmLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<VmService>>();
         _vmService = new VmService(_httpClient, vmLogger);
-        
+
         var containerLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<ContainerService>>();
         _containerService = new ContainerService(_httpClient, containerLogger);
-        
+
         var storageLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
             .GetRequiredService<ILogger<StorageService>>();
         _storageService = new StorageService(_httpClient, storageLogger);
-        
+
         var networkLogger = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
             .BuildServiceProvider()
@@ -173,10 +174,10 @@ public class ProxmoxClient : IDisposable
         try
         {
             _logger.LogInformation("Testing connection to Proxmox server");
-            
+
             // Try to get version information as a connection test
             var version = await _httpClient.GetAsync<Dictionary<string, object>>("/version", cancellationToken);
-            
+
             _logger.LogInformation("Connection test successful");
             return version != null;
         }
@@ -186,10 +187,10 @@ public class ProxmoxClient : IDisposable
             return false;
         }
     }    /// <summary>
-    /// Gets the version information from the Proxmox server
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Version information</returns>
+         /// Gets the version information from the Proxmox server
+         /// </summary>
+         /// <param name="cancellationToken">Cancellation token</param>
+         /// <returns>Version information</returns>
     public async Task<Dictionary<string, object>> GetVersionAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting Proxmox server version");
@@ -199,13 +200,14 @@ public class ProxmoxClient : IDisposable
     private static HttpClient CreateHttpClient(ProxmoxConnectionInfo connectionInfo)
     {
         var handler = new HttpClientHandler();
-        
+
         if (connectionInfo.IgnoreSslErrors)
         {
             handler.ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
         }
 
-        return new HttpClient(handler);    }
+        return new HttpClient(handler);
+    }
 
     public void Dispose()
     {

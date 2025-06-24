@@ -8,7 +8,8 @@ using ProxmoxApi.Exceptions;
 using ProxmoxApi.Examples;
 
 class Program
-{    static async Task Main(string[] args)
+{
+    static async Task Main(string[] args)
     {
         Console.WriteLine("=================================");
         Console.WriteLine("Proxmox API Library - Test Suite");
@@ -19,25 +20,27 @@ class Program
         Console.WriteLine("2. Configuration file (use appsettings.json)");
         Console.WriteLine();
         Console.Write("Enter choice (1 or 2): ");
-        
+
         var choice = Console.ReadLine()?.Trim();
-        
+
         if (choice == "2")
         {
             await SimpleTest.TestWithConfig();
         }
         else
         {
-            await RunInteractiveTest();        }
-    }    private static async Task RunInteractiveTest()
+            await RunInteractiveTest();
+        }
+    }
+    private static async Task RunInteractiveTest()
     {
         Console.WriteLine("=================================");
-        Console.WriteLine("Proxmox API Library - Real Server Test");  
+        Console.WriteLine("Proxmox API Library - Real Server Test");
         Console.WriteLine("=================================");
 
         // Get connection details from user
         var connectionInfo = GetConnectionInfo();
-        
+
         if (connectionInfo == null)
         {
             Console.WriteLine("Invalid connection information provided.");
@@ -47,13 +50,13 @@ class Program
         // Configure logging
         using var loggerFactory = LoggerFactory.Create(builder =>
             builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-        
+
         var logger = loggerFactory.CreateLogger<ProxmoxClient>();
 
         try
         {
             using var client = new ProxmoxClient(connectionInfo, logger);
-            
+
             Console.WriteLine($"\nConnecting to: {connectionInfo.BaseUrl}");
             Console.WriteLine($"Username: {connectionInfo.Username}@{connectionInfo.Realm}");
             Console.WriteLine($"Auth Method: {(string.IsNullOrEmpty(connectionInfo.ApiToken) ? "Password" : "API Token")}");
@@ -62,7 +65,7 @@ class Program
             // Test 1: Connection Test
             Console.WriteLine("📡 Testing connection...");
             var isConnected = await client.TestConnectionAsync();
-            
+
             if (!isConnected)
             {
                 Console.WriteLine("❌ Connection test failed!");
@@ -72,25 +75,25 @@ class Program
                 Console.WriteLine("- SSL certificate settings");
                 return;
             }
-            
+
             Console.WriteLine("✅ Connection successful!");
 
             // Test 2: Authentication
             Console.WriteLine("\n🔐 Testing authentication...");
             var isAuthenticated = await client.AuthenticateAsync();
-            
+
             if (!isAuthenticated)
             {
                 Console.WriteLine("❌ Authentication failed!");
                 return;
             }
-            
+
             Console.WriteLine("✅ Authentication successful!");
 
             // Test 3: Get Version Information
             Console.WriteLine("\n📋 Getting server information...");
             var version = await client.GetVersionAsync();
-            
+
             if (version != null && version.Count > 0)
             {
                 Console.WriteLine("✅ Server Information:");
@@ -102,12 +105,13 @@ class Program
             else
             {
                 Console.WriteLine("⚠️  Could not retrieve version information");
-            }            Console.WriteLine("\n🎉 Basic tests completed successfully!");
-            
+            }
+            Console.WriteLine("\n🎉 Basic tests completed successfully!");
+
             // Advanced Features Testing
             Console.WriteLine("\n" + new string('=', 50));
             Console.WriteLine("Advanced Feature Testing");
-            Console.WriteLine(new string('=', 50));            Console.WriteLine("\nChoose advanced test to run:");
+            Console.WriteLine(new string('=', 50)); Console.WriteLine("\nChoose advanced test to run:");
             Console.WriteLine("1. Node Management Test");
             Console.WriteLine("2. VM Management Test");
             Console.WriteLine("3. Container Management Test");
@@ -116,8 +120,8 @@ class Program
             Console.WriteLine("6. All Advanced Tests");
             Console.WriteLine("7. Skip advanced tests");
             Console.Write("Enter choice (1-7): ");
-            
-            var advancedChoice = Console.ReadLine()?.Trim();              switch (advancedChoice)
+
+            var advancedChoice = Console.ReadLine()?.Trim(); switch (advancedChoice)
             {
                 case "1":
                     await RunNodeManagementTest(client, logger);
@@ -146,7 +150,7 @@ class Program
                     Console.WriteLine("Skipping advanced tests.");
                     break;
             }
-            
+
             Console.WriteLine("\n🎉 All selected tests completed!");
             Console.WriteLine("The ProxmoxApi library is working correctly with your server.");
         }
@@ -189,14 +193,15 @@ class Program
             {
                 Console.WriteLine($"   Inner Exception: {ex.InnerException.Message}");
             }
-        }        Console.WriteLine("\nPress any key to exit...");
+        }
+        Console.WriteLine("\nPress any key to exit...");
         Console.ReadKey();
     }
 
     private static ProxmoxConnectionInfo? GetConnectionInfo()
     {
         Console.WriteLine("Please provide your Proxmox server details:");
-        
+
         // Get host
         Console.Write("Host (IP or FQDN): ");
         var host = Console.ReadLine()?.Trim();
@@ -283,11 +288,11 @@ class Program
     {
         var password = "";
         ConsoleKeyInfo keyInfo;
-        
+
         do
         {
             keyInfo = Console.ReadKey(true);
-            
+
             if (keyInfo.Key != ConsoleKey.Backspace && keyInfo.Key != ConsoleKey.Enter)
             {
                 password += keyInfo.KeyChar;
@@ -300,21 +305,22 @@ class Program
             }
         }
         while (keyInfo.Key != ConsoleKey.Enter);
-        
+
         Console.WriteLine();
         return password;
-    }    private static async Task RunNodeManagementTest(ProxmoxClient client, ILogger logger)
+    }
+    private static async Task RunNodeManagementTest(ProxmoxClient client, ILogger logger)
     {
         try
         {
             Console.WriteLine("\n" + new string('-', 40));
             Console.WriteLine("Node Management Test");
             Console.WriteLine(new string('-', 40));
-            
+
             // Get all nodes in the cluster
             Console.WriteLine("\n📋 Getting cluster nodes...");
             var nodes = await client.Nodes.GetNodesAsync();
-              Console.WriteLine($"Found {nodes.Count} nodes:");
+            Console.WriteLine($"Found {nodes.Count} nodes:");
             foreach (var node in nodes)
             {
                 Console.WriteLine($"  📍 {node.Node} - Status: {node.Status} - Type: {node.Type}");
@@ -329,9 +335,10 @@ class Program
                 // Demonstrate detailed node operations with the first node
                 var firstNode = nodes.First();
                 Console.WriteLine($"\n🔍 Getting detailed information for node '{firstNode.Node}':");
-                  var nodeStatus = await client.Nodes.GetNodeStatusAsync(firstNode.Node);
+                var nodeStatus = await client.Nodes.GetNodeStatusAsync(firstNode.Node);
                 if (nodeStatus != null)
-                {                    Console.WriteLine($"  Uptime: {nodeStatus.Uptime}s");
+                {
+                    Console.WriteLine($"  Uptime: {nodeStatus.Uptime}s");
                     if (nodeStatus.LoadAverage != null && nodeStatus.LoadAverage.Length > 0)
                     {
                         Console.WriteLine($"  Load Average: {string.Join(", ", nodeStatus.LoadAverage)}");
@@ -347,7 +354,7 @@ class Program
                     Console.WriteLine("  (Raw statistics available for advanced processing)");
                 }
             }
-            
+
             Console.WriteLine("✅ Node Management Test completed successfully!");
         }
         catch (Exception ex)
@@ -364,7 +371,7 @@ class Program
             Console.WriteLine("\n" + new string('-', 40));
             Console.WriteLine("VM Management Test");
             Console.WriteLine(new string('-', 40));
-            
+
             await VmManagementExample.RunExampleAsync(client, logger);
         }
         catch (Exception ex)
@@ -372,17 +379,18 @@ class Program
             Console.WriteLine($"❌ VM Management Test Failed: {ex.Message}");
             logger.LogError(ex, "VM management test failed");
         }
-    }    private static async Task RunContainerManagementTest(ProxmoxClient client, ILogger logger)
+    }
+    private static async Task RunContainerManagementTest(ProxmoxClient client, ILogger logger)
     {
         try
         {
             Console.WriteLine("\n" + new string('-', 40));
             Console.WriteLine("Container Management Test");
             Console.WriteLine(new string('-', 40));
-            
+
             var containerLogger = LoggerFactory.Create(builder => builder.AddConsole())
                 .CreateLogger<ContainerManagementExample>();
-            
+
             var containerExample = new ContainerManagementExample(client, containerLogger);
             await containerExample.RunExample();
         }
@@ -400,13 +408,13 @@ class Program
             Console.WriteLine("\n" + new string('-', 40));
             Console.WriteLine("Storage Management Test");
             Console.WriteLine(new string('-', 40));
-            
+
             // Get first available node for storage operations
             var nodes = await client.Nodes.GetNodesAsync();
             var nodeName = nodes.FirstOrDefault()?.Node ?? "pve";
-            
+
             Console.WriteLine($"Using node '{nodeName}' for storage testing");
-            
+
             await StorageManagementExample.RunStorageManagementExampleAsync(client, nodeName);
         }
         catch (Exception ex)
@@ -422,13 +430,13 @@ class Program
             Console.WriteLine("\n" + new string('-', 40));
             Console.WriteLine("Network Management Test");
             Console.WriteLine(new string('-', 40));
-            
+
             // Get first available node for network operations
             var nodes = await client.Nodes.GetNodesAsync();
             var nodeName = nodes.FirstOrDefault()?.Node ?? "pve";
-            
+
             Console.WriteLine($"Using node '{nodeName}' for network testing");
-            
+
             await NetworkManagementExample.RunNetworkManagementExampleAsync(client, nodeName);
         }
         catch (Exception ex)

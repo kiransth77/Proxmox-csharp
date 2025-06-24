@@ -46,7 +46,7 @@ public class NodeServiceTests : IDisposable
         Assert.Equal(2, result.Count);
         Assert.Equal("node1", result[0].Node);
         Assert.Equal("online", result[0].Status);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<List<ProxmoxNode>>("/nodes", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -116,7 +116,7 @@ public class NodeServiceTests : IDisposable
         Assert.Equal(17179869184, result.Memory.Total);
         Assert.NotNull(result.LoadAverage);
         Assert.Equal(3, result.LoadAverage.Length);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<NodeStatus>("/nodes/node1/status", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -142,7 +142,7 @@ public class NodeServiceTests : IDisposable
         Assert.NotNull(result);
         Assert.Equal("7.4-3", result["version"]);
         Assert.Equal("bullseye", result["release"]);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<Dictionary<string, object>>("/nodes/node1/version", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -168,21 +168,22 @@ public class NodeServiceTests : IDisposable
         Assert.NotNull(result);
         Assert.Equal("Active", result["status"]);
         Assert.Equal("standard", result["level"]);
-        
+
         _mockHttpClient.Verify(x => x.GetAsync<Dictionary<string, object>>("/nodes/node1/subscription", It.IsAny<CancellationToken>()), Times.Once);
-    }    [Theory]
+    }
+    [Theory]
     [InlineData("")]
     [InlineData("   ")]
     public async Task Methods_WithInvalidNodeName_ThrowArgumentException(string invalidNodeName)
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _nodeService.GetNodeStatusAsync(invalidNodeName));
-            
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _nodeService.GetNodeVersionAsync(invalidNodeName));
-            
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _nodeService.GetNodeSubscriptionAsync(invalidNodeName));
     }
 
@@ -190,13 +191,13 @@ public class NodeServiceTests : IDisposable
     public async Task Methods_WithNullNodeName_ThrowArgumentNullException()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => 
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _nodeService.GetNodeStatusAsync(null!));
-            
-        await Assert.ThrowsAsync<ArgumentNullException>(() => 
+
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _nodeService.GetNodeVersionAsync(null!));
-            
-        await Assert.ThrowsAsync<ArgumentNullException>(() => 
+
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _nodeService.GetNodeSubscriptionAsync(null!));
     }
 

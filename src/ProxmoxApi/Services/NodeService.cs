@@ -12,7 +12,8 @@ namespace ProxmoxApi.Services;
 /// Service for managing Proxmox nodes
 /// </summary>
 public class NodeService
-{    private readonly IProxmoxHttpClient _httpClient;
+{
+    private readonly IProxmoxHttpClient _httpClient;
     private readonly ILogger<NodeService> _logger;
 
     public NodeService(IProxmoxHttpClient httpClient, ILogger<NodeService> logger)
@@ -29,9 +30,9 @@ public class NodeService
     public async Task<List<ProxmoxNode>> GetNodesAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting list of cluster nodes");
-        
+
         var nodes = await _httpClient.GetAsync<List<ProxmoxNode>>("/nodes", cancellationToken);
-        
+
         _logger.LogInformation("Retrieved {NodeCount} nodes", nodes?.Count ?? 0);
         return nodes ?? new List<ProxmoxNode>();
     }
@@ -45,11 +46,11 @@ public class NodeService
     public async Task<NodeStatus> GetNodeStatusAsync(string nodeName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(nodeName);
-        
+
         _logger.LogDebug("Getting status for node {NodeName}", nodeName);
-        
+
         var status = await _httpClient.GetAsync<NodeStatus>($"/nodes/{nodeName}/status", cancellationToken);
-        
+
         _logger.LogInformation("Retrieved status for node {NodeName}", nodeName);
         return status ?? new NodeStatus();
     }
@@ -63,11 +64,11 @@ public class NodeService
     public async Task<Dictionary<string, object>> GetNodeVersionAsync(string nodeName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(nodeName);
-        
+
         _logger.LogDebug("Getting version information for node {NodeName}", nodeName);
-        
+
         var version = await _httpClient.GetAsync<Dictionary<string, object>>($"/nodes/{nodeName}/version", cancellationToken);
-        
+
         _logger.LogInformation("Retrieved version information for node {NodeName}", nodeName);
         return version ?? new Dictionary<string, object>();
     }
@@ -81,11 +82,11 @@ public class NodeService
     public async Task<Dictionary<string, object>> GetNodeSubscriptionAsync(string nodeName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(nodeName);
-        
+
         _logger.LogDebug("Getting subscription information for node {NodeName}", nodeName);
-        
+
         var subscription = await _httpClient.GetAsync<Dictionary<string, object>>($"/nodes/{nodeName}/subscription", cancellationToken);
-        
+
         _logger.LogInformation("Retrieved subscription information for node {NodeName}", nodeName);
         return subscription ?? new Dictionary<string, object>();
     }
@@ -101,16 +102,16 @@ public class NodeService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(nodeName);
         ArgumentException.ThrowIfNullOrWhiteSpace(command);
-        
+
         _logger.LogWarning("Executing command {Command} on node {NodeName}", command, nodeName);
-        
+
         var data = new Dictionary<string, string>
         {
             ["command"] = command
         };
-        
+
         var result = await _httpClient.PostAsync<string>($"/nodes/{nodeName}/status", data, cancellationToken);
-        
+
         _logger.LogInformation("Command {Command} executed on node {NodeName}", command, nodeName);
         return result ?? string.Empty;
     }
@@ -147,21 +148,21 @@ public class NodeService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>RRD statistics data</returns>
     public async Task<List<Dictionary<string, object>>> GetNodeStatisticsAsync(
-        string nodeName, 
-        string timeframe = "hour", 
+        string nodeName,
+        string timeframe = "hour",
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(nodeName);
-        
+
         _logger.LogDebug("Getting {Timeframe} statistics for node {NodeName}", timeframe, nodeName);
-        
+
         var stats = await _httpClient.GetAsync<List<Dictionary<string, object>>>(
-            $"/nodes/{nodeName}/rrddata?timeframe={timeframe}", 
+            $"/nodes/{nodeName}/rrddata?timeframe={timeframe}",
             cancellationToken);
-        
-        _logger.LogInformation("Retrieved {StatCount} statistics entries for node {NodeName}", 
+
+        _logger.LogInformation("Retrieved {StatCount} statistics entries for node {NodeName}",
             stats?.Count ?? 0, nodeName);
-        
+
         return stats ?? new List<Dictionary<string, object>>();
     }
 
@@ -173,10 +174,10 @@ public class NodeService
     public async Task<Dictionary<string, ProxmoxNode>> GetNodesSummaryAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting nodes summary");
-        
+
         var nodes = await GetNodesAsync(cancellationToken);
         var summary = new Dictionary<string, ProxmoxNode>();
-        
+
         foreach (var node in nodes)
         {
             if (!string.IsNullOrEmpty(node.Node))
@@ -184,7 +185,7 @@ public class NodeService
                 summary[node.Node] = node;
             }
         }
-        
+
         _logger.LogInformation("Created summary for {NodeCount} nodes", summary.Count);
         return summary;
     }
@@ -198,12 +199,12 @@ public class NodeService
     public async Task<bool> IsNodeOnlineAsync(string nodeName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(nodeName);
-        
+
         try
         {
             var status = await GetNodeStatusAsync(nodeName, cancellationToken);
             var isOnline = status.Time > 0; // If we get a valid time, node is responsive
-            
+
             _logger.LogDebug("Node {NodeName} online status: {IsOnline}", nodeName, isOnline);
             return isOnline;
         }
