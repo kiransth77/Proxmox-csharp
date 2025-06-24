@@ -96,16 +96,15 @@ public class ProxmoxHttpClientTests : IDisposable
             .ReturnsAsync(httpResponse);        // Act & Assert
         await Assert.ThrowsAsync<ProxmoxAuthenticationException>(() => 
             _proxmoxHttpClient.AuthenticateAsync());
-    }
-
-    [Fact]
+    }    [Fact]
     public async Task GetAsync_ReturnsDeserializedResponse_WhenSuccessful()
     {
         // Arrange
         var testData = new { message = "test data" };
+        var apiResponse = new ProxmoxApiResponse<object> { Data = testData };
         var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent(JsonSerializer.Serialize(testData), Encoding.UTF8, "application/json")
+            Content = new StringContent(JsonSerializer.Serialize(apiResponse), Encoding.UTF8, "application/json")
         };
 
         _mockHttpMessageHandler
@@ -134,13 +133,13 @@ public class ProxmoxHttpClientTests : IDisposable
 
     [Fact]
     public async Task PostAsync_SendsDataAndReturnsResponse_WhenSuccessful()
-    {
-        // Arrange
+    {        // Arrange
         var postData = new { key = "value" };
         var responseData = new { success = true };
+        var apiResponse = new ProxmoxApiResponse<object> { Data = responseData };
         var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent(JsonSerializer.Serialize(responseData), Encoding.UTF8, "application/json")
+            Content = new StringContent(JsonSerializer.Serialize(apiResponse), Encoding.UTF8, "application/json")
         };
 
         _mockHttpMessageHandler
@@ -169,13 +168,13 @@ public class ProxmoxHttpClientTests : IDisposable
 
     [Fact]
     public async Task PutAsync_SendsDataAndReturnsResponse_WhenSuccessful()
-    {
-        // Arrange
+    {        // Arrange
         var putData = new { key = "updated_value" };
         var responseData = new { success = true };
+        var apiResponse = new ProxmoxApiResponse<object> { Data = responseData };
         var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent(JsonSerializer.Serialize(responseData), Encoding.UTF8, "application/json")
+            Content = new StringContent(JsonSerializer.Serialize(apiResponse), Encoding.UTF8, "application/json")
         };
 
         _mockHttpMessageHandler
@@ -204,12 +203,12 @@ public class ProxmoxHttpClientTests : IDisposable
 
     [Fact]
     public async Task DeleteAsync_ReturnsResponse_WhenSuccessful()
-    {
-        // Arrange
+    {        // Arrange
         var responseData = new { success = true };
+        var apiResponse = new ProxmoxApiResponse<object> { Data = responseData };
         var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent(JsonSerializer.Serialize(responseData), Encoding.UTF8, "application/json")
+            Content = new StringContent(JsonSerializer.Serialize(apiResponse), Encoding.UTF8, "application/json")
         };
 
         _mockHttpMessageHandler
