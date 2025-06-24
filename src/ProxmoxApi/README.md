@@ -55,6 +55,18 @@ A C# client library for interacting with Proxmox VE REST API.
 - ✅ **Multi-Storage Support**: Handle directory, LVM, NFS, Ceph, and other storage types
 - ✅ **Content Filtering**: Filter storage content by type (images, backups, ISOs, templates)
 
+### Iteration 6 - Network Management (COMPLETED ✅)
+- ✅ **Network Interface Management**: List, create, update, and delete network interfaces
+- ✅ **Bridge Configuration**: Create and manage bridge interfaces with VLAN awareness
+- ✅ **VLAN Management**: Create and configure VLAN interfaces with proper tagging
+- ✅ **Bond Configuration**: Set up and manage bonded network interfaces for redundancy
+- ✅ **Network Status Monitoring**: Monitor interface status, configuration, and activity
+- ✅ **Firewall Rules**: Manage node-level firewall rules and security policies
+- ✅ **DNS Configuration**: Configure DNS settings and search domains
+- ✅ **Hosts File Management**: Manage static host entries and IP-to-hostname mappings
+- ✅ **Network Validation**: Validate network configurations before applying changes
+- ✅ **Network Summary**: Get comprehensive network overview and statistics
+
 ## Installation
 
 Add the package reference to your project:
@@ -468,12 +480,8 @@ public partial class MainPage : ContentPage
 
 ### Planned Features
 
-- **Iteration 3**: Virtual machine operations (list, create, start, stop, delete)
-- **Iteration 4**: Container (LXC) operations
-- **Iteration 5**: Storage management
-- **Iteration 6**: Network configuration
 - **Iteration 7**: Backup and restore operations
-- **Iteration 8**: User and permission management
+- **Iteration 8**: User and permission management  
 - **Iteration 9**: Clustering support
 - **Iteration 10**: Advanced monitoring and metrics
 
@@ -484,3 +492,173 @@ This is an open-source project. Contributions are welcome!
 ## License
 
 MIT License
+
+## Network Management
+
+### Network Interface Management
+
+```csharp
+// Get all network interfaces on a node
+var interfaces = await client.Network.GetNetworkInterfacesAsync("node1");
+
+foreach (var iface in interfaces)
+{
+    Console.WriteLine($"Interface: {iface.InterfaceName} ({iface.Type})");
+    Console.WriteLine($"  Address: {iface.Address ?? "None"}");
+    Console.WriteLine($"  Active: {(iface.IsActive ? "Yes" : "No")}");
+    Console.WriteLine($"  Autostart: {(iface.IsAutostart ? "Yes" : "No")}");
+}
+
+// Get specific interface details
+var ethInterface = await client.Network.GetNetworkInterfaceAsync("node1", "eth0");
+```
+
+### Bridge Management
+
+```csharp
+// Create a bridge interface
+var bridgeConfig = new BridgeConfig
+{
+    Name = "vmbr1",
+    Ports = "eth1,eth2",
+    SpanningTreeProtocol = false,
+    VlanAware = true,
+    Comments = "VM bridge"
+};
+
+await client.Network.CreateBridgeAsync("node1", bridgeConfig);
+
+// Get all bridges
+var bridges = await client.Network.GetBridgesAsync("node1");
+```
+
+### VLAN Configuration
+
+```csharp
+// Create a VLAN interface
+var vlanConfig = new VlanConfig
+{
+    Name = "vlan100",
+    VlanId = 100,
+    RawDevice = "eth0",
+    Method = "static",
+    Address = "192.168.100.1",
+    Netmask = "255.255.255.0"
+};
+
+await client.Network.CreateVlanAsync("node1", vlanConfig);
+
+// Get all VLANs
+var vlans = await client.Network.GetVlansAsync("node1");
+```
+
+### Bond Configuration
+
+```csharp
+// Create a bond interface for redundancy
+var bondConfig = new BondConfig
+{
+    Name = "bond0",
+    Slaves = "eth0 eth1",
+    Mode = "active-backup",
+    Method = "static",
+    Address = "192.168.1.10",
+    Netmask = "255.255.255.0",
+    Gateway = "192.168.1.1"
+};
+
+await client.Network.CreateBondAsync("node1", bondConfig);
+
+// Get all bonds
+var bonds = await client.Network.GetBondsAsync("node1");
+```
+
+### Firewall Management
+
+```csharp
+// Get firewall rules for a node
+var firewallRules = await client.Network.GetFirewallRulesAsync("node1");
+
+// Create a new firewall rule
+var newRule = new FirewallRuleCreateOptions
+{
+    Action = "ACCEPT",
+    Type = "in",
+    Source = "192.168.1.0/24",
+    DestinationPort = "22",
+    Protocol = "tcp",
+    Comment = "SSH access from LAN"
+};
+
+await client.Network.CreateFirewallRuleAsync("node1", newRule);
+
+// Update an existing rule
+await client.Network.UpdateFirewallRuleAsync("node1", 0, updatedRule);
+
+// Delete a firewall rule
+await client.Network.DeleteFirewallRuleAsync("node1", 0);
+```
+
+### DNS and Hosts Management
+
+```csharp
+// Get DNS configuration
+var dnsConfig = await client.Network.GetDnsConfigAsync("node1");
+
+// Update DNS settings
+var newDnsConfig = new DnsConfig
+{
+    SearchDomain = "example.com",
+    Dns1 = "8.8.8.8",
+    Dns2 = "8.8.4.4"
+};
+
+await client.Network.UpdateDnsConfigAsync("node1", newDnsConfig);
+
+// Get host entries
+var hostEntries = await client.Network.GetHostEntriesAsync("node1");
+
+// Update host entries
+var newHostEntries = new List<HostEntry>
+{
+    new() { IpAddress = "192.168.1.10", Hostname = "server1.example.com" },
+    new() { IpAddress = "192.168.1.20", Hostname = "server2.example.com" }
+};
+
+await client.Network.UpdateHostEntriesAsync("node1", newHostEntries);
+```
+
+### Network Status and Monitoring
+
+```csharp
+// Get network status
+var networkStatus = await client.Network.GetNetworkStatusAsync("node1");
+
+// Get network summary
+var summary = await client.Network.GetNetworkSummaryAsync("node1");
+Console.WriteLine($"Total Interfaces: {summary["TotalInterfaces"]}");
+Console.WriteLine($"Active Interfaces: {summary["ActiveInterfaces"]}");
+Console.WriteLine($"Bridges: {summary["BridgeCount"]}");
+Console.WriteLine($"VLANs: {summary["VlanCount"]}");
+Console.WriteLine($"Bonds: {summary["BondCount"]}");
+
+// Validate network configuration
+var interfaceOptions = new NetworkInterfaceCreateOptions
+{
+    InterfaceName = "vmbr0",
+    Type = "bridge",
+    BridgePorts = "eth0"
+};
+
+var isValid = NetworkService.ValidateNetworkInterfaceConfig(interfaceOptions);
+```
+
+### Network Configuration Changes
+
+```csharp
+// Apply network configuration changes
+await client.Network.ApplyNetworkConfigurationAsync("node1");
+
+// Revert network configuration changes
+await client.Network.RevertNetworkConfigurationAsync("node1");
+```

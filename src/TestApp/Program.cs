@@ -112,12 +112,12 @@ class Program
             Console.WriteLine("2. VM Management Test");
             Console.WriteLine("3. Container Management Test");
             Console.WriteLine("4. Storage Management Test");
-            Console.WriteLine("5. All Advanced Tests");
-            Console.WriteLine("6. Skip advanced tests");
-            Console.Write("Enter choice (1-6): ");
+            Console.WriteLine("5. Network Management Test");
+            Console.WriteLine("6. All Advanced Tests");
+            Console.WriteLine("7. Skip advanced tests");
+            Console.Write("Enter choice (1-7): ");
             
-            var advancedChoice = Console.ReadLine()?.Trim();
-              switch (advancedChoice)
+            var advancedChoice = Console.ReadLine()?.Trim();              switch (advancedChoice)
             {
                 case "1":
                     await RunNodeManagementTest(client, logger);
@@ -132,12 +132,16 @@ class Program
                     await RunStorageManagementTest(client, logger);
                     break;
                 case "5":
+                    await RunNetworkManagementTest(client, logger);
+                    break;
+                case "6":
                     await RunNodeManagementTest(client, logger);
                     await RunVmManagementTest(client, logger);
                     await RunContainerManagementTest(client, logger);
                     await RunStorageManagementTest(client, logger);
+                    await RunNetworkManagementTest(client, logger);
                     break;
-                case "6":
+                case "7":
                 default:
                     Console.WriteLine("Skipping advanced tests.");
                     break;
@@ -409,6 +413,28 @@ class Program
         {
             Console.WriteLine($"❌ Storage Management Test Failed: {ex.Message}");
             logger.LogError(ex, "Storage management test failed");
+        }
+    }
+    private static async Task RunNetworkManagementTest(ProxmoxClient client, ILogger logger)
+    {
+        try
+        {
+            Console.WriteLine("\n" + new string('-', 40));
+            Console.WriteLine("Network Management Test");
+            Console.WriteLine(new string('-', 40));
+            
+            // Get first available node for network operations
+            var nodes = await client.Nodes.GetNodesAsync();
+            var nodeName = nodes.FirstOrDefault()?.Node ?? "pve";
+            
+            Console.WriteLine($"Using node '{nodeName}' for network testing");
+            
+            await NetworkManagementExample.RunNetworkManagementExampleAsync(client, nodeName);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Network Management Test Failed: {ex.Message}");
+            logger.LogError(ex, "Network management test failed");
         }
     }
 }

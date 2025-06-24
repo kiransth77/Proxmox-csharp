@@ -24,6 +24,7 @@ public class ProxmoxClient : IDisposable
     private readonly VmService _vmService;
     private readonly ContainerService _containerService;
     private readonly StorageService _storageService;
+    private readonly NetworkService _networkService;
     private bool _disposed;
 
     /// <summary>
@@ -39,12 +40,15 @@ public class ProxmoxClient : IDisposable
     /// <summary>
     /// Container (LXC) management service
     /// </summary>
-    public ContainerService Containers => _containerService;
-
-    /// <summary>
+    public ContainerService Containers => _containerService;    /// <summary>
     /// Storage management service
     /// </summary>
     public StorageService Storage => _storageService;
+
+    /// <summary>
+    /// Network management service
+    /// </summary>
+    public NetworkService Network => _networkService;
 
     /// <summary>
     /// Initializes a new instance of ProxmoxClient
@@ -90,6 +94,12 @@ public class ProxmoxClient : IDisposable
             .BuildServiceProvider()
             .GetRequiredService<ILogger<StorageService>>();
         _storageService = new StorageService(_httpClient, storageLogger);
+        
+        var networkLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<NetworkService>>();
+        _networkService = new NetworkService(_httpClient, networkLogger);
     }
 
     /// <summary>
@@ -134,6 +144,12 @@ public class ProxmoxClient : IDisposable
             .BuildServiceProvider()
             .GetRequiredService<ILogger<StorageService>>();
         _storageService = new StorageService(_httpClient, storageLogger);
+        
+        var networkLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<NetworkService>>();
+        _networkService = new NetworkService(_httpClient, networkLogger);
     }
 
     /// <summary>

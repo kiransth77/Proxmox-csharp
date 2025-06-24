@@ -87,8 +87,6 @@ jobs:
         - ✅ **Node Management**: Complete node operations and monitoring
         - ✅ **VM Management**: Full virtual machine lifecycle management
         - ✅ **LXC Container Management**: Comprehensive container operations
-        - ✅ **Storage Management**: Storage operations and monitoring
-        - ✅ **Network Management**: Network configuration and management
         - ✅ **Authentication**: Username/password and API token support
         - ✅ **Error Handling**: Comprehensive exception hierarchy
         - ✅ **Logging**: Microsoft.Extensions.Logging integration
@@ -113,16 +111,6 @@ jobs:
         - Container snapshot management
         - Container networking and storage
         
-        ### Storage Operations
-        - Storage pool management
-        - Storage status and statistics
-        - Content management
-        
-        ### Network Operations
-        - Network interface management
-        - Network configuration
-        - Bridge and VLAN management
-        
         ## 📚 Documentation
         - Comprehensive API documentation
         - Usage examples for all major operations
@@ -138,8 +126,7 @@ jobs:
         
         ---
         
-        **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ needs.validate-tag.outputs.version }}
-        EOF
+        **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ needs.validate-tag.outputs.version }}        EOF
     
     - name: Upload release artifacts
       uses: actions/upload-artifact@v4
@@ -155,8 +142,7 @@ jobs:
     needs: [validate-tag, build-release]
     permissions:
       contents: write
-    
-    steps:
+      steps:
     - name: Checkout code
       uses: actions/checkout@v4
     
@@ -186,7 +172,7 @@ jobs:
     
     steps:
     - name: Download release artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v3
       with:
         name: release-artifacts
         path: ./artifacts
