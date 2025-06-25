@@ -197,7 +197,7 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Publish to NuGet (Prerelease)
-      if: needs.validate-tag.outputs.is_prerelease == 'true'
+      if: needs.validate-tag.outputs.is-prerelease == 'true'
       run: |
         dotnet nuget push "./artifacts/release-packages/*.nupkg" \
           --api-key ${{ secrets.NUGET_API_KEY }} \
@@ -205,7 +205,7 @@ jobs:
           --skip-duplicate
     
     - name: Publish to NuGet (Stable)
-      if: needs.validate-tag.outputs.is_prerelease == 'false'
+      if: needs.validate-tag.outputs.is-prerelease == 'false'
       run: |
         dotnet nuget push "./artifacts/release-packages/*.nupkg" \
           --api-key ${{ secrets.NUGET_API_KEY }} \
