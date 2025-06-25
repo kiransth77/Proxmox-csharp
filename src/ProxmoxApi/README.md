@@ -67,6 +67,28 @@ A C# client library for interacting with Proxmox VE REST API.
 - ✅ **Network Validation**: Validate network configurations before applying changes
 - ✅ **Network Summary**: Get comprehensive network overview and statistics
 
+### Iteration 7 - Backup and Restore Management (COMPLETED ✅)
+- ✅ **Backup Job Management**: Create, update, delete, and list backup jobs with full configuration
+- ✅ **Backup File Operations**: List, browse, and manage backup files across storage systems
+- ✅ **VM/Container Backup**: Create on-demand backups for VMs and containers with customizable settings
+- ✅ **Restore Operations**: Restore VMs and containers from backup files with flexible configuration
+- ✅ **Backup Task Monitoring**: Monitor backup and restore task progress and status
+- ✅ **Cross-Storage Support**: Handle backups across different storage types and locations
+- ✅ **Backup Filtering**: Filter and search backup files by VM ID, date, and storage location
+- ✅ **Task Management**: Track backup task execution, progress, and completion status
+
+### Iteration 8 - User and Permission Management (COMPLETED ✅)
+- ✅ **User Management**: Create, update, delete, and list users with comprehensive configuration
+- ✅ **Group Management**: Manage user groups with member assignment and configuration
+- ✅ **Role Management**: Create and manage custom roles with specific permissions
+- ✅ **Access Control Lists (ACL)**: Configure fine-grained permissions for resources and paths
+- ✅ **API Token Management**: Create, manage, and delete API tokens for service accounts
+- ✅ **Password Management**: Set and update user passwords with security validation
+- ✅ **Realm Integration**: Support for different authentication realms (PAM, LDAP, etc.)
+- ✅ **Permission Inheritance**: Handle permission inheritance through groups and roles
+- ✅ **Security Validation**: Validate user permissions and access rights
+- ✅ **Audit Support**: Track user management operations and access patterns
+
 ## Installation
 
 Add the package reference to your project:
@@ -662,3 +684,439 @@ await client.Network.ApplyNetworkConfigurationAsync("node1");
 // Revert network configuration changes
 await client.Network.RevertNetworkConfigurationAsync("node1");
 ```
+
+## Backup and Restore Management API
+
+### Backup Job Management
+
+```csharp
+// Get all backup jobs
+var backupJobs = await client.Backup.GetBackupJobsAsync();
+
+foreach (var job in backupJobs)
+{
+    Console.WriteLine($"Job: {job.Id}, Schedule: {job.Schedule}");
+    Console.WriteLine($"  Storage: {job.Storage}, VMs: {job.VmIds}");
+    Console.WriteLine($"  Enabled: {job.Enabled}, Mode: {job.Mode}");
+}
+
+// Get specific backup job
+var job = await client.Backup.GetBackupJobAsync("backup-job-1");
+
+// Create new backup job
+var newJob = new BackupJobParameters
+{
+    Schedule = "0 2 * * *", // Daily at 2 AM
+    Storage = "backup-storage",
+    VmIds = "100,101,102", // Specific VMs or "all"
+    Mode = "snapshot",
+    Compress = "zstd",
+    Remove = 7, // Keep 7 backups
+    MailTo = "admin@example.com",
+    Comment = "Daily VM backup"
+};
+
+await client.Backup.CreateBackupJobAsync(newJob);
+
+// Update existing backup job
+var updatedParams = new BackupJobParameters
+{
+    Schedule = "0 3 * * 0", // Weekly on Sunday at 3 AM
+    Enabled = true
+};
+
+await client.Backup.UpdateBackupJobAsync("backup-job-1", updatedParams);
+
+// Delete backup job
+await client.Backup.DeleteBackupJobAsync("backup-job-1");
+```
+
+### Backup File Management
+
+```csharp
+// Get all backup files
+var allBackups = await client.Backup.GetBackupFilesAsync("node1");
+
+foreach (var backup in allBackups)
+{
+    Console.WriteLine($"Backup: {backup.VolumeId}");
+    Console.WriteLine($"  VM ID: {backup.VmId}, Size: {backup.Size} bytes");
+    Console.WriteLine($"  Created: {backup.CreationTime}, Format: {backup.Format}");
+}
+
+// Get backup files for specific VM
+var vmBackups = await client.Backup.GetVmBackupFilesAsync("node1", 100);
+
+// Get backup files from specific storage
+var storageBackups = await client.Backup.GetBackupFilesAsync("node1", "backup-storage");
+
+// Delete backup file
+await client.Backup.DeleteBackupFileAsync("node1", "backup-storage", "vzdump-qemu-100-2024_06_24-02_00_05.vma.zst");
+```
+
+### VM and Container Backup Operations
+
+```csharp
+// Create VM backup
+var vmBackupTask = await client.Backup.CreateVmBackupAsync(
+    node: "node1",
+    vmId: 100,
+    storage: "backup-storage",
+    mode: "snapshot",
+    compress: "zstd"
+);
+
+Console.WriteLine($"Backup task started: {vmBackupTask}");
+
+// Create container backup
+var containerBackupTask = await client.Backup.CreateContainerBackupAsync(
+    node: "node1", 
+    containerId: 200,
+    storage: "backup-storage",
+    mode: "snapshot",
+    compress: "zstd"
+);
+
+// Backup with custom options
+var backupTask = await client.Backup.CreateVmBackupAsync(
+    node: "node1",
+    vmId: 100, 
+    storage: "backup-storage",
+    mode: "stop", // stop, suspend, or snapshot
+    compress: "gzip" // none, lzo, gzip, or zstd
+);
+```
+
+### Restore Operations
+
+```csharp
+// Restore VM from backup
+var restoreParams = new RestoreParameters
+{
+    VmId = 150, // New VM ID
+    Storage = "local-lvm", // Target storage
+    Unique = true, // Generate new MAC addresses
+    Force = false // Don't overwrite existing VM
+};
+
+var restoreTask = await client.Backup.RestoreVmBackupAsync(
+    node: "node1",
+    backupFile: "vzdump-qemu-100-2024_06_24-02_00_05.vma.zst",
+    restoreParams
+);
+
+// Restore container from backup  
+var containerRestoreParams = new RestoreParameters
+{
+    VmId = 250,
+    Storage = "local",
+    Unprivileged = true
+};
+
+var containerRestoreTask = await client.Backup.RestoreContainerBackupAsync(
+    node: "node1", 
+    backupFile: "vzdump-lxc-200-2024_06_24-02_00_05.tar.zst",
+    containerRestoreParams
+);
+
+Console.WriteLine($"Restore task: {restoreTask}");
+```
+
+### Backup Task Monitoring
+
+```csharp
+// Get backup task status
+var taskStatus = await client.Backup.GetBackupTaskStatusAsync("node1", "UPID:node1:12345678");
+
+Console.WriteLine($"Task Status: {taskStatus.Status}");
+Console.WriteLine($"Progress: {taskStatus.Progress}%");
+Console.WriteLine($"Started: {taskStatus.StartTime}");
+
+if (taskStatus.IsCompleted)
+{
+    Console.WriteLine($"Completed: {taskStatus.EndTime}");
+    Console.WriteLine($"Duration: {taskStatus.Duration}");
+}
+
+// Get all backup tasks
+var allTasks = await client.Backup.GetBackupTasksAsync("node1");
+
+foreach (var task in allTasks.Take(10)) // Show last 10
+{
+    Console.WriteLine($"Task: {task.Upid}");
+    Console.WriteLine($"  Type: {task.Type}, Status: {task.Status}");
+    Console.WriteLine($"  Started: {task.StartTime}, User: {task.User}");
+}
+
+// Monitor backup task progress
+var taskId = await client.Backup.CreateVmBackupAsync("node1", 100, "backup-storage");
+
+while (true)
+{
+    var status = await client.Backup.GetBackupTaskStatusAsync("node1", taskId);
+    
+    Console.WriteLine($"Progress: {status.Progress}% - {status.Status}");
+    
+    if (status.IsCompleted)
+    {
+        Console.WriteLine(status.ExitStatus == "OK" ? "Backup completed successfully!" : "Backup failed!");
+        break;
+    }
+    
+    await Task.Delay(5000); // Wait 5 seconds before checking again
+}
+```
+
+## User and Permission Management API
+
+### User Management
+
+```csharp
+// Get all users
+var users = await client.UserManagement.GetUsersAsync();
+
+// Get specific user details
+var user = await client.UserManagement.GetUserAsync("testuser@pam");
+
+// Create a new user
+var newUser = new CreateUserParameters
+{
+    UserId = "newuser@pam",
+    Password = "securepassword123",
+    Email = "newuser@example.com",
+    FirstName = "New",
+    LastName = "User",
+    Groups = new[] { "administrators" },
+    Enabled = true,
+    Expire = DateTime.Now.AddYears(1)
+};
+
+await client.UserManagement.CreateUserAsync(newUser);
+
+// Update user information
+var updateParams = new UpdateUserParameters
+{
+    Email = "updated@example.com",
+    FirstName = "Updated",
+    Groups = new[] { "administrators", "operators" }
+};
+
+await client.UserManagement.UpdateUserAsync("newuser@pam", updateParams);
+
+// Set user password
+await client.UserManagement.SetUserPasswordAsync("newuser@pam", "newpassword123");
+
+// Delete user
+await client.UserManagement.DeleteUserAsync("newuser@pam");
+```
+
+### Group Management
+
+```csharp
+// Get all groups
+var groups = await client.UserManagement.GetGroupsAsync();
+
+// Get specific group details
+var group = await client.UserManagement.GetGroupAsync("administrators");
+
+// Create a new group
+var newGroup = new CreateGroupParameters
+{
+    GroupId = "developers",
+    Comment = "Development team members"
+};
+
+await client.UserManagement.CreateGroupAsync(newGroup);
+
+// Update group
+var updateGroupParams = new UpdateGroupParameters
+{
+    Comment = "Updated development team"
+};
+
+await client.UserManagement.UpdateGroupAsync("developers", updateGroupParams);
+
+// Delete group
+await client.UserManagement.DeleteGroupAsync("developers");
+```
+
+### Role Management
+
+```csharp
+// Get all roles
+var roles = await client.UserManagement.GetRolesAsync();
+
+// Get specific role details
+var role = await client.UserManagement.GetRoleAsync("Administrator");
+
+// Create a custom role
+var newRole = new CreateRoleParameters
+{
+    RoleId = "VMManager",
+    Privileges = new[] { "VM.Allocate", "VM.Config.Disk", "VM.Config.Memory", "VM.PowerMgmt" }
+};
+
+await client.UserManagement.CreateRoleAsync(newRole);
+
+// Update role privileges
+var updateRoleParams = new UpdateRoleParameters
+{
+    Privileges = new[] { "VM.Allocate", "VM.Config.Disk", "VM.Config.Memory", "VM.PowerMgmt", "VM.Monitor" }
+};
+
+await client.UserManagement.UpdateRoleAsync("VMManager", updateRoleParams);
+
+// Delete role
+await client.UserManagement.DeleteRoleAsync("VMManager");
+```
+
+### Access Control Lists (ACL)
+
+```csharp
+// Get all ACL entries
+var aclEntries = await client.UserManagement.GetAclAsync();
+
+// Create ACL entry for user
+var userAcl = new CreateAclParameters
+{
+    Path = "/vms/100",
+    Users = new[] { "vmuser@pam" },
+    RoleId = "VMManager",
+    Propagate = true
+};
+
+await client.UserManagement.CreateAclAsync(userAcl);
+
+// Create ACL entry for group
+var groupAcl = new CreateAclParameters
+{
+    Path = "/storage/local",
+    Groups = new[] { "storage-admins" },
+    RoleId = "Administrator",
+    Propagate = false
+};
+
+await client.UserManagement.CreateAclAsync(groupAcl);
+
+// Delete ACL entry
+await client.UserManagement.DeleteAclAsync("/vms/100", "vmuser@pam", "VMManager");
+```
+
+### API Token Management
+
+```csharp
+// Get all API tokens for a user
+var tokens = await client.UserManagement.GetApiTokensAsync("admin@pam");
+
+// Create a new API token
+var tokenParams = new CreateApiTokenParameters
+{
+    TokenId = "automation-token",
+    Comment = "Token for automation scripts",
+    Expire = DateTime.Now.AddMonths(6),
+    Privileges = new[] { "VM.Allocate", "VM.PowerMgmt" }
+};
+
+var tokenInfo = await client.UserManagement.CreateApiTokenAsync("admin@pam", tokenParams);
+Console.WriteLine($"Token Value: {tokenInfo.Value}"); // Store this securely!
+
+// Update API token
+var updateTokenParams = new UpdateApiTokenParameters
+{
+    Comment = "Updated automation token",
+    Expire = DateTime.Now.AddMonths(12)
+};
+
+await client.UserManagement.UpdateApiTokenAsync("admin@pam", "automation-token", updateTokenParams);
+
+// Delete API token
+await client.UserManagement.DeleteApiTokenAsync("admin@pam", "automation-token");
+```
+
+### Permission Checking and Validation
+
+```csharp
+// Check if user has specific permission
+var hasPermission = await client.UserManagement.CheckUserPermissionAsync(
+    "vmuser@pam", "/vms/100", "VM.PowerMgmt");
+
+if (hasPermission)
+{
+    Console.WriteLine("User can manage VM power state");
+}
+
+// Get effective permissions for user on path
+var permissions = await client.UserManagement.GetUserPermissionsAsync("vmuser@pam", "/vms");
+
+foreach (var permission in permissions)
+{
+    Console.WriteLine($"Permission: {permission} on path: /vms");
+}
+
+// Check user group membership
+var userGroups = await client.UserManagement.GetUserGroupsAsync("vmuser@pam");
+
+foreach (var group in userGroups)
+{
+    Console.WriteLine($"User is member of group: {group}");
+}
+```
+
+### Security Best Practices
+
+```csharp
+// Example: Secure user creation with validation
+public async Task<bool> CreateSecureUserAsync(string userId, string password, string[] groups)
+{
+    try
+    {
+        // Validate password strength
+        if (password.Length < 8)
+        {
+            throw new ArgumentException("Password must be at least 8 characters");
+        }
+
+        // Check if user already exists
+        var existingUser = await client.UserManagement.GetUserAsync(userId);
+        if (existingUser != null)
+        {
+            throw new InvalidOperationException($"User {userId} already exists");
+        }
+
+        // Validate groups exist
+        var allGroups = await client.UserManagement.GetGroupsAsync();
+        var validGroups = groups.Where(g => allGroups.Any(existing => existing.GroupId == g)).ToArray();
+
+        if (validGroups.Length != groups.Length)
+        {
+            var invalidGroups = groups.Except(validGroups);
+            throw new ArgumentException($"Invalid groups: {string.Join(", ", invalidGroups)}");
+        }
+
+        // Create user with validated parameters
+        var userParams = new CreateUserParameters
+        {
+            UserId = userId,
+            Password = password,
+            Groups = validGroups,
+            Enabled = true,
+            Expire = DateTime.Now.AddYears(1) // Set reasonable expiration
+        };
+
+        await client.UserManagement.CreateUserAsync(userParams);
+        return true;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Failed to create user: {ex.Message}");
+        return false;
+    }
+}
+```
+
+## Planned Features
+
+- **Iteration 7**: Backup and restore operations
+- **Iteration 8**: User and permission management  
+- **Iteration 9**: Clustering support
+- **Iteration 10**: Advanced monitoring and metrics

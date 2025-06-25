@@ -111,17 +111,19 @@ class Program
             // Advanced Features Testing
             Console.WriteLine("\n" + new string('=', 50));
             Console.WriteLine("Advanced Feature Testing");
-            Console.WriteLine(new string('=', 50)); Console.WriteLine("\nChoose advanced test to run:");
+            Console.WriteLine(new string('=', 50));            Console.WriteLine("\nChoose advanced test to run:");
             Console.WriteLine("1. Node Management Test");
             Console.WriteLine("2. VM Management Test");
             Console.WriteLine("3. Container Management Test");
             Console.WriteLine("4. Storage Management Test");
             Console.WriteLine("5. Network Management Test");
-            Console.WriteLine("6. All Advanced Tests");
-            Console.WriteLine("7. Skip advanced tests");
-            Console.Write("Enter choice (1-7): ");
+            Console.WriteLine("6. Backup Management Test");
+            Console.WriteLine("7. User Management Test");
+            Console.WriteLine("8. All Advanced Tests");
+            Console.WriteLine("9. Skip advanced tests");
+            Console.Write("Enter choice (1-9): ");
 
-            var advancedChoice = Console.ReadLine()?.Trim(); switch (advancedChoice)
+            var advancedChoice = Console.ReadLine()?.Trim();            switch (advancedChoice)
             {
                 case "1":
                     await RunNodeManagementTest(client, logger);
@@ -137,15 +139,22 @@ class Program
                     break;
                 case "5":
                     await RunNetworkManagementTest(client, logger);
+                    break;                case "6":
+                    await RunBackupManagementTest(client, logger);
                     break;
-                case "6":
+                case "7":
+                    await RunUserManagementTest(client, logger);
+                    break;
+                case "8":
                     await RunNodeManagementTest(client, logger);
                     await RunVmManagementTest(client, logger);
                     await RunContainerManagementTest(client, logger);
                     await RunStorageManagementTest(client, logger);
                     await RunNetworkManagementTest(client, logger);
+                    await RunBackupManagementTest(client, logger);
+                    await RunUserManagementTest(client, logger);
                     break;
-                case "7":
+                case "9":
                 default:
                     Console.WriteLine("Skipping advanced tests.");
                     break;
@@ -443,6 +452,99 @@ class Program
         {
             Console.WriteLine($"❌ Network Management Test Failed: {ex.Message}");
             logger.LogError(ex, "Network management test failed");
+        }
+    }
+    private static async Task RunBackupManagementTest(ProxmoxClient client, ILogger logger)
+    {
+        try
+        {
+            Console.WriteLine("\n" + new string('-', 40));
+            Console.WriteLine("Backup Management Test");
+            Console.WriteLine(new string('-', 40));
+
+            // Get first available node for backup operations
+            var nodes = await client.Nodes.GetNodesAsync();
+            var nodeName = nodes.FirstOrDefault()?.Node ?? "pve";
+
+            Console.WriteLine($"Using node '{nodeName}' for backup testing");
+
+            await BackupManagementExample.RunExamplesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Backup Management Test Failed: {ex.Message}");
+            logger.LogError(ex, "Backup management test failed");
+        }
+    }
+
+    private static async Task RunUserManagementTest(ProxmoxClient client, ILogger logger)
+    {
+        try
+        {
+            Console.WriteLine("\n" + new string('-', 40));
+            Console.WriteLine("User Management Test");
+            Console.WriteLine(new string('-', 40));
+
+            Console.WriteLine("🔧 Testing User Management API...");            // Test user listing
+            Console.WriteLine("\n📋 Getting users...");
+            var users = await client.Users.GetUsersAsync();
+            Console.WriteLine($"   Found {users.Count()} users");
+            
+            foreach (var user in users.Take(5)) // Show first 5 users
+            {
+                Console.WriteLine($"   - {user.UserId} ({user.FirstName} {user.LastName})");
+                if (!string.IsNullOrEmpty(user.Email))
+                    Console.WriteLine($"     Email: {user.Email}");
+                if (user.Groups?.Any() == true)
+                    Console.WriteLine($"     Groups: {string.Join(", ", user.Groups)}");
+            }
+
+            // Test group listing
+            Console.WriteLine("\n👥 Getting groups...");
+            var groups = await client.Users.GetGroupsAsync();
+            Console.WriteLine($"   Found {groups.Count()} groups");
+            
+            foreach (var group in groups.Take(5)) // Show first 5 groups
+            {
+                Console.WriteLine($"   - {group.GroupId}");
+                if (!string.IsNullOrEmpty(group.Comment))
+                    Console.WriteLine($"     Comment: {group.Comment}");
+            }
+
+            // Test role listing
+            Console.WriteLine("\n🎭 Getting roles...");
+            var roles = await client.Users.GetRolesAsync();
+            Console.WriteLine($"   Found {roles.Count()} roles");
+            
+            foreach (var role in roles.Take(5)) // Show first 5 roles
+            {
+                Console.WriteLine($"   - {role.RoleId}");
+                if (role.Privileges?.Any() == true)
+                    Console.WriteLine($"     Privileges: {string.Join(", ", role.Privileges.Take(3))}...");
+            }            // Test ACL listing
+            Console.WriteLine("\n🔐 Getting ACL entries...");
+            var aclEntries = await client.Users.GetAccessControlListAsync();
+            Console.WriteLine($"   Found {aclEntries.Count()} ACL entries");            foreach (var acl in aclEntries.Take(5)) // Show first 5 ACL entries
+            {
+                Console.WriteLine($"   - Path: {acl.Path}, Role: {acl.RoleId}");
+                Console.WriteLine($"     {acl.Type}: {acl.UserId}");
+                if (acl.Propagate == true)
+                    Console.WriteLine($"     Propagate: Yes");
+            }
+
+            Console.WriteLine("\n✅ User Management API test completed successfully!");
+
+            // Interactive user management demo
+            Console.WriteLine("\n" + new string('=', 40));
+            Console.WriteLine("Interactive User Management Demo");
+            Console.WriteLine(new string('=', 40));
+            
+            await UserManagementExample.RunAsync(client);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ User Management Test Failed: {ex.Message}");
+            logger.LogError(ex, "User management test failed");
         }
     }
 }

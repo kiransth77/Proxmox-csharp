@@ -336,82 +336,8 @@ public class VolumeCreateOptions
     /// <summary>
     /// VM/Container ID
     /// </summary>
-    public int? VmId { get; set; }
-
-    /// <summary>
+    public int? VmId { get; set; }    /// <summary>
     /// Volume notes
     /// </summary>
     public string Notes { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Backup job configuration
-/// </summary>
-public class BackupJob
-{
-    /// <summary>
-    /// Job identifier
-    /// </summary>
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Job type (vzdump)
-    /// </summary>
-    [JsonPropertyName("type")]
-    public string Type { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Target VMs/Containers (comma-separated IDs or 'all')
-    /// </summary>
-    [JsonPropertyName("vmid")]
-    public string VmId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Target storage for backups
-    /// </summary>
-    [JsonPropertyName("storage")]
-    public string Storage { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Backup schedule (cron format)
-    /// </summary>
-    [JsonPropertyName("schedule")]
-    public string Schedule { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Backup mode (snapshot, suspend, stop)
-    /// </summary>
-    [JsonPropertyName("mode")]
-    public string Mode { get; set; } = "snapshot";
-
-    /// <summary>
-    /// Compression method (0=none, 1=lzo, gzip, zstd)
-    /// </summary>
-    [JsonPropertyName("compress")]
-    public string Compress { get; set; } = "zstd";
-
-    /// <summary>
-    /// Maximum number of backups to keep
-    /// </summary>
-    [JsonPropertyName("maxfiles")]
-    public int MaxFiles { get; set; } = 3;
-
-    /// <summary>
-    /// Whether job is enabled
-    /// </summary>
-    [JsonPropertyName("enabled")]
-    public bool Enabled { get; set; } = true;
-
-    /// <summary>
-    /// Email notification settings
-    /// </summary>
-    [JsonPropertyName("mailto")]
-    public string MailTo { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Job comment/description
-    /// </summary>
-    [JsonPropertyName("comment")]
-    public string Comment { get; set; } = string.Empty;
 }

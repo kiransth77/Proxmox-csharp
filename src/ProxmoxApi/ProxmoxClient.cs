@@ -18,14 +18,15 @@ namespace ProxmoxApi;
 /// Main client for interacting with Proxmox VE API
 /// </summary>
 public class ProxmoxClient : IDisposable
-{
-    private readonly ProxmoxHttpClient _httpClient;
+{    private readonly ProxmoxHttpClient _httpClient;
     private readonly ILogger<ProxmoxClient> _logger;
     private readonly NodeService _nodeService;
     private readonly VmService _vmService;
     private readonly ContainerService _containerService;
     private readonly StorageService _storageService;
     private readonly NetworkService _networkService;
+    private readonly BackupService _backupService;
+    private readonly UserManagementService _userManagementService;
     private bool _disposed;
 
     /// <summary>
@@ -49,7 +50,15 @@ public class ProxmoxClient : IDisposable
     /// <summary>
     /// Network management service
     /// </summary>
-    public NetworkService Network => _networkService;
+    public NetworkService Network => _networkService;    /// <summary>
+    /// Backup and restore management service
+    /// </summary>
+    public BackupService Backup => _backupService;
+
+    /// <summary>
+    /// User and permission management service
+    /// </summary>
+    public UserManagementService Users => _userManagementService;
 
     /// <summary>
     /// Initializes a new instance of ProxmoxClient
@@ -101,6 +110,17 @@ public class ProxmoxClient : IDisposable
             .BuildServiceProvider()
             .GetRequiredService<ILogger<NetworkService>>();
         _networkService = new NetworkService(_httpClient, networkLogger);
+
+        var backupLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()            .GetRequiredService<ILogger<BackupService>>();
+        _backupService = new BackupService(_httpClient, backupLogger);
+
+        var userManagementLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<UserManagementService>>();
+        _userManagementService = new UserManagementService(_httpClient, userManagementLogger);
     }
 
     /// <summary>
@@ -151,6 +171,17 @@ public class ProxmoxClient : IDisposable
             .BuildServiceProvider()
             .GetRequiredService<ILogger<NetworkService>>();
         _networkService = new NetworkService(_httpClient, networkLogger);
+
+        var backupLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()            .GetRequiredService<ILogger<BackupService>>();
+        _backupService = new BackupService(_httpClient, backupLogger);
+
+        var userManagementLogger = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<UserManagementService>>();
+        _userManagementService = new UserManagementService(_httpClient, userManagementLogger);
     }
 
     /// <summary>
